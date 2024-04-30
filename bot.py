@@ -21,6 +21,27 @@ async def start(client, update):
         file_name, file_url = line.split(':')
         command_to_exec = [
             "yt-dlp",
+            "--geo-bypass-country", "US",
+            "--socket-timeout", "15",
+            "--retries",
+            "25",
+            "--fragment-retries",
+            "25",
+            "--force-overwrites",
+            "--no-keep-video",
+            "--progress",
+            "-i",
+            "--convert-thumbnails", "jpg",
+            "--embed-chapters",
+            "--convert-subs", "srt",
+            "--audio-quality", "0",
+           # "--remux-video", "webm>mp4/mkv>mkv/mp4",
+            "--recode-video", "mkv",
+            "--external-downloader", "aria2c",
+            "--external-downloader-args", "aria2c:-x 4 -s 8 -k 1M",
+            "--add-metadata",
+            "--all-subs",
+            "--embed-thumbnail",
             "-o", f"{download_directory}/{file_name}.%(ext)s",
             file_url
         ]
@@ -31,6 +52,8 @@ async def start(client, update):
         thumbnail_path = f"{download_directory}/{file_name}.jpg"
         subprocess.run([
             "ffmpeg",
+            "-hide-banner",
+            "-log-level", "quiet",
             "-ss", "00:00:01",
             "-i", file_path,
             "-vframes", "1",
@@ -42,6 +65,8 @@ async def start(client, update):
         # Get video information
         result = subprocess.run([
             "ffprobe",
+            "-hide-banner",
+            "-log-level", "quiet",
             "-v", "quiet",
             "-print_format", "json",
             "-show_format",
