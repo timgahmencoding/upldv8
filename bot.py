@@ -84,7 +84,7 @@ async def handle_docs(client, update):
                     thumb_cmd = f'ffmpeg -hide_banner -loglevel quiet -i {downloaded_file_path} -ss 00:00:02 -vframes 1 -update 1 {thumbnail_path}'
                     os.system(thumb_cmd)
                     '''
-                    clip = VideoFileClip(f'{file}')
+                    clip = VideoFileClip(downloaded_file_path)
                     duration = clip.duration
                     width = clip.size[0]
                     height = clip.size[1]
