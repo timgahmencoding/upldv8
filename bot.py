@@ -71,6 +71,7 @@ async def handle_docs(client, update):
                     # Assume the file is a video and process accordingly
                     # Generate thumbnail
                     thumbnail_path = f"{download_directory}/{file_name}.jpg"
+                    '''
                     subprocess.run([
                         "ffmpeg",
                         "-hide_banner",
@@ -82,8 +83,9 @@ async def handle_docs(client, update):
                         "-vf", "scale=320:320:force_original_aspect_ratio=decrease",
                         thumbnail_path
                     ], check=True)
-                    if result.returncode != 0:
-                        print("ffmpeg failed:", result.stderr.decode())
+                    '''
+                    thumb_cmd = f'ffmpeg -hide_banner -loglevel quiet -i {downloaded_file_path} -ss 00:00:02 -vframes 1 -update 1 {thumbnail_path}'
+                    os.system(thumb_cmd)
                     # Get video information
                     result = subprocess.run([
                         "ffprobe",
