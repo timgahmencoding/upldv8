@@ -42,6 +42,7 @@ async def handle_docs(client, update):
                     "--fragment-retries",
                     "25",
                     "--force-overwrites",
+                    "-k",
                 #    "--no-keep-video",
                     "-i",
                     "--convert-thumbnails", "jpg",
