@@ -2,8 +2,7 @@ import os
 import subprocess
 import re
 import json
-from hachoir.parser import createParser
-from hachoir.metadata import extractMetadata
+from moviepy.editor import VideoFileClip
 import pyfiglet
 from pyrogram import Client, filters
 from dotenv import load_dotenv
@@ -84,32 +83,12 @@ async def handle_docs(client, update):
                     '''
                     thumb_cmd = f'ffmpeg -hide_banner -loglevel quiet -i {downloaded_file_path} -ss 00:00:02 -vframes 1 -update 1 {thumbnail_path}'
                     os.system(thumb_cmd)
-                    
-                    # Get video information
-                    result = subprocess.run([
-                        "ffprobe",
-                        "-hide_banner",
-                        "-loglevel", "quiet",
-                        "-v", "quiet",
-                        "-print_format", "json",
-                        "-show_format",
-                        "-show_streams",
-                        downloaded_file_path
-                    ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                    video_info = json.loads(result.stdout)
-                    
-                    # Extract video dimensions and duration
-                    video_stream = next((stream for stream in video_info['streams'] if stream['codec_type'] == 'video'), None)
-                    width = int(video_stream['width']) if video_stream else 0
-                    height = int(video_stream['height']) if video_stream else 0
-                    duration = float(video_stream['duration']) if video_stream else 0
                     '''
-                    parser = createParser(downloaded_file_path)
-                    metadata = extractMetadata(parser)
-                    duration = metadata.get("duration").seconds
-                    width = metadata.get("width")
-                    height = metadata.get("height")
-    
+                    clip = VideoFileClip(f'{file}')
+                    duration = clip.duration
+                    width = clip.size[0]
+                    height = clip.size[1]
+                    
                     # Send the video
                     await client.send_video(
                         chat_id=update.chat.id,
