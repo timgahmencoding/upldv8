@@ -43,18 +43,12 @@ async def handle_docs(client, update):
                     "--fragment-retries",
                     "25",
                     "--force-overwrites",
-                    "-k",
                 #    "--no-keep-video",
                     "-i",
-                    "--convert-thumbnails", "jpg",
-                    "--audio-quality", "0",
-                    #"--remux-video", "webm>mp4/mkv>mkv/mp4",
                     "--recode-video", "mkv",
                     "--external-downloader", "aria2c",
                     "--external-downloader-args", "aria2c:-x 4 -s 16 -k 10M",
                     "--add-metadata",
-                    "--all-subs",
-                    "--embed-thumbnail",
                     "-o", f"{download_directory}/{file_name}.%(ext)s",
                     file_url
                 ]
@@ -73,41 +67,9 @@ async def handle_docs(client, update):
                     # Assume the file is a video and process accordingly
                     # Generate thumbnail
                     thumbnail_path = f"{download_directory}/{file_name}.jpg"
-                    '''
-                    subprocess.run([
-                        "ffmpeg",
-                        "-hide_banner",
-                        "-loglevel", "quiet",
-                        "-ss", "00:00:01",
-                        "-i", downloaded_file_path,
-                        "-vframes", "1",
-                        "-q:v", "2",
-                        "-vf", "scale=320:320:force_original_aspect_ratio=decrease",
-                        thumbnail_path
-                    ], check=True)
-                    '''
                     thumb_cmd = f'ffmpeg -hide_banner -loglevel quiet -i {downloaded_file_path} -ss 00:00:02 -vframes 1 -update 1 {thumbnail_path}'
                     os.system(thumb_cmd)
-                    '''
-                    # Get video information
-                    result = subprocess.run([
-                        "ffprobe",
-                        "-hide_banner",
-                        "-loglevel", "quiet",
-                        "-v", "quiet",
-                        "-print_format", "json",
-                        "-show_format",
-                        "-show_streams",
-                        downloaded_file_path
-                    ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                    video_info = json.loads(result.stdout)
-                    
-                    # Extract video dimensions and duration
-                    video_stream = next((stream for stream in video_info['streams'] if stream['codec_type'] == 'video'), None)
-                    width = int(video_stream['width']) if video_stream else 0
-                    height = int(video_stream['height']) if video_stream else 0
-                    duration = float(video_stream['duration']) if video_stream else 0
-                    '''
+                    # Get video information 
                     cap = cv2.VideoCapture(downloaded_file_path)
                     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
                     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
