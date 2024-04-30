@@ -75,7 +75,7 @@ async def handle_docs(event):
                     else:
                         # Generate thumbnail and get video information using moviepy
                         thumbnail_path = f"{download_directory}/{file_name}.jpg"
-                        clip = VideoFileClip(downloaded_file_path)
+                        clip = VideoFileClip(downloaded_file_path + '.mp4')
                         clip.save_frame(thumbnail_path, t=1)  # t is the time in seconds
                         width, height = clip.size
                         duration = int(clip.duration)
