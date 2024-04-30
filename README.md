@@ -5,27 +5,16 @@ This Telegram bot is designed to download videos from provided URLs using `yt-dl
 
 ## Features
 - **Download Videos**: Uses `yt-dlp` to download videos from URLs.
-- **Generate Thumbnails**: Creates a thumbnail for each video using `ffmpeg`.
-- **Retrieve Video Info**: Gathers video information using `ffprobe`.
+- **Generate Thumbnails**: Creates a thumbnail for each video using `cv2+moviepy`.
+- **Retrieve Video Info**: Gathers video information using `cv2+moviepy`.
 - **Upload to Telegram**: Sends the downloaded video to Telegram with the thumbnail and video details.
 
 ## Usage
-To use the bot, send a `/start` command followed by the video name and URL enclosed in square brackets. Here's the format you should use:
-
-/start [VideoName:VideoURL]
-
-
-Replace `VideoName` with the desired name for the video and `VideoURL` with the actual link to the video you want to download.
-
-## Example
-Here's an example of how to send a command to the bot:
-
-
-/start [MyAwesomeVideo:https://www.youtube.com/watch?v=link]
+To use the bot, send `/start` to check bot is live then send text file containing urls.
 
 
 ## Installation
-To set up the bot, you need to have `yt-dlp`, `ffmpeg`, and `ffprobe` installed on your system. Ensure that these tools are accessible from the environment where the bot is running.
+To set up the bot, you need to have `yt-dlp`, `cv2+moviepy`, and `aria2c` installed on your system. Ensure that these tools are accessible from the environment where the bot is running.
 
 ## Configuration
 Make sure to set the `download_directory` in the script to the path where you want the downloaded files to be saved.
@@ -39,7 +28,8 @@ Execute the script to run the bot. It will listen for commands and process them 
 - `yt-dlp`
 - `ffmpeg`
 - `ffprobe`
-
+- `cv2+moviepy`
+- `aria2c`
 ## License
 This project is licensed under the MIT License - see the LICENSE.md file for details.
 
