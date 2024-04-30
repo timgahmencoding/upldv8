@@ -1,5 +1,6 @@
 import os
 import subprocess
+import pyfiglet
 import cv2
 from moviepy.editor import VideoFileClip
 from pyrogram import Client, filters
