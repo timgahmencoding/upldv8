@@ -2,6 +2,7 @@ import os
 import subprocess
 import re
 import json
+import pyfiglet
 from pyrogram import Client, filters
 from dotenv import load_dotenv
 
