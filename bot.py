@@ -58,7 +58,6 @@ async def handle_docs(client, update):
                         "--force-overwrites",
                         "--no-keep-video",
                         "-i",
-                        "--remux-video", "mkv",
                         "--external-downloader", "aria2c",
                         "--external-downloader-args", "aria2c:-x 4 -s 8 -k 1M",
                         "--add-metadata",
@@ -66,7 +65,7 @@ async def handle_docs(client, update):
                         file_url
                     ]
                 subprocess.run(command_to_exec, check=True)
-                downloaded_file_path = f"{download_directory}/{file_name}.mkv"
+                downloaded_file_path = f"{download_directory}/{file_name}"
                 
                 # Update the progress message with the file name for uploading
                 await progress_message.edit_text(f"Uploading {file_name}...")
