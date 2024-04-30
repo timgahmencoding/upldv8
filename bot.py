@@ -75,13 +75,13 @@ async def handle_docs(client, update):
                     duration = clip.duration
                     width = clip.size[0]
                     height = clip.size[1]
-                except:
-                    try:
+                '''
                         cap = cv2.VideoCapture(downloaded_file_path)
                         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
                         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                         duration = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) / cap.get(cv2.CAP_PROP_FPS))
                         cap.release()
+                        '''
     
                     # Send the video
                     await client.send_video(
