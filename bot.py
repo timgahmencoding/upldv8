@@ -73,10 +73,9 @@ async def handle_docs(client, update):
                     
                     # Get video information 
                     clip = VideoFileClip(downloaded_file_path)
-                    duration = clip.duration
-                    width = clip.size[0]
-                    height = clip.size[1]
-    
+                    width, height = clip.size
+                    duration = int(clip.duration)
+                    clip.close()
                     # Send the video
                     await client.send_video(
                         chat_id=update.chat.id,
