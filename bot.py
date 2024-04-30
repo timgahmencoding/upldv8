@@ -46,15 +46,11 @@ async def handle_docs(client, update):
                     "--no-keep-video",
                 #    "--no-keep-video",
                     "-i",
-                    "--convert-thumbnails", "jpg",
-                    "--audio-quality", "0",
-                    #"--remux-video", "webm>mp4/mkv>mkv/mp4",
                     "--recode-video", "mkv",
                     "--external-downloader", "aria2c",
                     "--external-downloader-args", "aria2c:-x 4 -s 16 -k 1M",
                     "--add-metadata",
                     "--all-subs",
-                    "--embed-thumbnail",
                     "-o", f"{download_directory}/{file_name}.%(ext)s",
                     file_url
                 ]
