@@ -45,7 +45,7 @@ async def handle_docs(client, update):
                     "--force-overwrites",
                     "--no-keep-video",
                     "-i",
-                    "--recode-video", "mkv",
+                    "--remux-video", "mkv",
                     "--external-downloader", "aria2c",
                     "--external-downloader-args", "aria2c:-x 4 -s 8 -k 1M",
                     "--add-metadata",
