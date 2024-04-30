@@ -59,7 +59,8 @@ async def handle_docs(client, update):
                     file_url
                 ]
                 subprocess.run(command_to_exec, check=True)
-                downloaded_file_path = f"{download_directory}/{file_name}"
+               # downloaded_file_path = f"{download_directory}/{file_name}"
+                downloaded_file_path = f"{download_directory}/{file_name}.mkv"
                 
                 # Check the file extension
                 if downloaded_file_path.endswith('.pdf'):
