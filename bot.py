@@ -73,8 +73,8 @@ async def handle_docs(client, update):
                     thumbnail_path = f"{download_directory}/{file_name}.jpg"
                     subprocess.run([
                         "ffmpeg",
-                        "-hide-banner",
-                        "-log-level", "quiet",
+                        "-hide_banner",
+                        "-loglevel", "quiet",
                         "-ss", "00:00:01",
                         "-i", downloaded_file_path,
                         "-vframes", "1",
@@ -86,8 +86,8 @@ async def handle_docs(client, update):
                     # Get video information
                     result = subprocess.run([
                         "ffprobe",
-                        "-hide-banner",
-                        "-log-level", "quiet",
+                        "-hide_banner",
+                        "-loglevel", "quiet",
                         "-v", "quiet",
                         "-print_format", "json",
                         "-show_format",
