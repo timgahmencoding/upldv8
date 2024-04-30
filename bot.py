@@ -25,7 +25,7 @@ async def start(client, update):
 
 @bot.on_message(filters.document & filters.private)
 async def handle_docs(client, update):
-    progress_message = await update.reply_text("Downloading...")
+    progress_message = await update.reply_text("Preparing to download...")
     if update.document.mime_type == "text/plain":
         # Save the document
         file_path = await update.download()
@@ -34,6 +34,9 @@ async def handle_docs(client, update):
             lines = file.readlines()
             for line in lines:
                 file_name, file_url = line.strip().split(':', 1)
+                # Update the progress message with the file name
+                await progress_message.edit_text(f"Downloading {file_name}...")
+
                 # Determine if the URL is for a video or a PDF
                 if file_url.endswith('.pdf'):
                     # Use yt-dlp to download PDF files
@@ -64,7 +67,9 @@ async def handle_docs(client, update):
                     ]
                 subprocess.run(command_to_exec, check=True)
                 downloaded_file_path = f"{download_directory}/{file_name}.mkv"
-                await progress_message.edit_text("Uploading...")
+                
+                # Update the progress message with the file name for uploading
+                await progress_message.edit_text(f"Uploading {file_name}...")
 
                 # Check the file extension
                 if downloaded_file_path.endswith('.pdf'):
@@ -121,4 +126,4 @@ custom_fig = pyfiglet.Figlet(font='small')
 print('\033[36m' + custom_fig.renderText('Bot deployed') + '\033[0m')
 
 bot.run()
-                        
+                
