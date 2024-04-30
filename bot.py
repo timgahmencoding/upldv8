@@ -2,7 +2,8 @@ import os
 import subprocess
 import re
 import json
-import cv2
+from hachoir.parser import createParser
+from hachoir.metadata import extractMetadata
 import pyfiglet
 from pyrogram import Client, filters
 from dotenv import load_dotenv
@@ -84,7 +85,7 @@ async def handle_docs(client, update):
                     '''
                     thumb_cmd = f'ffmpeg -hide_banner -loglevel quiet -i {downloaded_file_path} -ss 00:00:02 -vframes 1 -update 1 {thumbnail_path}'
                     os.system(thumb_cmd)
-                    '''
+                    
                     # Get video information
                     result = subprocess.run([
                         "ffprobe",
@@ -103,7 +104,12 @@ async def handle_docs(client, update):
                     width = int(video_stream['width']) if video_stream else 0
                     height = int(video_stream['height']) if video_stream else 0
                     duration = float(video_stream['duration']) if video_stream else 0
-                    
+                    '''
+                    parser = createParser(downloaded_file_path)
+                    metadata = extractMetadata(parser)
+                    duration = metadata.get("duration").seconds
+                    width = metadata.get("width")
+                    height = metadata.get("height")
     
                     # Send the video
                     await client.send_video(
