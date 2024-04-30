@@ -3,6 +3,7 @@ import subprocess
 import re
 import json
 import cv2
+from moviepy.editor import VideoFileClip
 import pyfiglet
 from pyrogram import Client, filters
 from dotenv import load_dotenv
@@ -43,11 +44,11 @@ async def handle_docs(client, update):
                     "--fragment-retries",
                     "25",
                     "--force-overwrites",
-                #    "--no-keep-video",
+                    "--no-keep-video",
                     "-i",
                     "--recode-video", "mkv",
                     "--external-downloader", "aria2c",
-                    "--external-downloader-args", "aria2c:-x 4 -s 16 -k 10M",
+                    "--external-downloader-args", "aria2c:-x 4 -s 8 -k 1M",
                     "--add-metadata",
                     "-o", f"{download_directory}/{file_name}.%(ext)s",
                     file_url
@@ -70,11 +71,17 @@ async def handle_docs(client, update):
                     thumb_cmd = f'ffmpeg -hide_banner -loglevel quiet -i {downloaded_file_path} -ss 00:00:02 -vframes 1 -update 1 {thumbnail_path}'
                     os.system(thumb_cmd)
                     # Get video information 
-                    cap = cv2.VideoCapture(downloaded_file_path)
-                    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-                    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-                    duration = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) / cap.get(cv2.CAP_PROP_FPS))
-                    cap.release()
+                    clip = VideoFileClip(downloaded_file_path)
+                    duration = clip.duration
+                    width = clip.size[0]
+                    height = clip.size[1]
+                except:
+                    try:
+                        cap = cv2.VideoCapture(downloaded_file_path)
+                        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                        duration = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) / cap.get(cv2.CAP_PROP_FPS))
+                        cap.release()
     
                     # Send the video
                     await client.send_video(
@@ -87,6 +94,7 @@ async def handle_docs(client, update):
                         duration=duration
                     )
         # Delete the temporary file
+        os.remove(downloaded_file_path)
         os.remove(file_path)
     else:
         await update.reply_text("Please send a valid .txt file.")
