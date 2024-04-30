@@ -51,7 +51,7 @@ async def handle_docs(client, update):
                     #"--remux-video", "webm>mp4/mkv>mkv/mp4",
                     "--recode-video", "mkv",
                     "--external-downloader", "aria2c",
-                    "--external-downloader-args", "aria2c:-x 4 -s 16 -k 1M",
+                    "--external-downloader-args", "aria2c:-x 4 -s 16 -k 10M",
                     "--add-metadata",
                     "--all-subs",
                     "--embed-thumbnail",
@@ -59,7 +59,7 @@ async def handle_docs(client, update):
                     file_url
                 ]
                 subprocess.run(command_to_exec, check=True)
-                downloaded_file_path = f"{download_directory}/{file_name}"
+                downloaded_file_path = f"{download_directory}/{file_name}.mkv"
                 
                 # Check the file extension
                 if downloaded_file_path.endswith('.pdf'):
