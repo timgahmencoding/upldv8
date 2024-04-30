@@ -2,7 +2,7 @@ import os
 import subprocess
 import re
 import json
-from moviepy.editor import VideoFileClip
+import cv2
 import pyfiglet
 from pyrogram import Client, filters
 from dotenv import load_dotenv
@@ -44,17 +44,22 @@ async def handle_docs(client, update):
                     "25",
                     "--force-overwrites",
                     "-k",
+                #    "--no-keep-video",
                     "-i",
+                    "--convert-thumbnails", "jpg",
+                    "--audio-quality", "0",
+                    #"--remux-video", "webm>mp4/mkv>mkv/mp4",
                     "--recode-video", "mkv",
                     "--external-downloader", "aria2c",
                     "--external-downloader-args", "aria2c:-x 4 -s 16 -k 1M",
                     "--add-metadata",
+                    "--all-subs",
+                    "--embed-thumbnail",
                     "-o", f"{download_directory}/{file_name}.%(ext)s",
                     file_url
                 ]
                 subprocess.run(command_to_exec, check=True)
-               # downloaded_file_path = f"{download_directory}/{file_name}"
-                downloaded_file_path = f"{download_directory}/{file_name}.mkv"
+                downloaded_file_path = f"{download_directory}/{file_name}"
                 
                 # Check the file extension
                 if downloaded_file_path.endswith('.pdf'):
@@ -68,7 +73,7 @@ async def handle_docs(client, update):
                     # Assume the file is a video and process accordingly
                     # Generate thumbnail
                     thumbnail_path = f"{download_directory}/{file_name}.jpg"
-                    
+                    '''
                     subprocess.run([
                         "ffmpeg",
                         "-hide_banner",
@@ -84,11 +89,31 @@ async def handle_docs(client, update):
                     thumb_cmd = f'ffmpeg -hide_banner -loglevel quiet -i {downloaded_file_path} -ss 00:00:02 -vframes 1 -update 1 {thumbnail_path}'
                     os.system(thumb_cmd)
                     '''
-                    clip = VideoFileClip(downloaded_file_path)
-                    duration = clip.duration
-                    width = clip.size[0]
-                    height = clip.size[1]
+                    # Get video information
+                    result = subprocess.run([
+                        "ffprobe",
+                        "-hide_banner",
+                        "-loglevel", "quiet",
+                        "-v", "quiet",
+                        "-print_format", "json",
+                        "-show_format",
+                        "-show_streams",
+                        downloaded_file_path
+                    ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    video_info = json.loads(result.stdout)
                     
+                    # Extract video dimensions and duration
+                    video_stream = next((stream for stream in video_info['streams'] if stream['codec_type'] == 'video'), None)
+                    width = int(video_stream['width']) if video_stream else 0
+                    height = int(video_stream['height']) if video_stream else 0
+                    duration = float(video_stream['duration']) if video_stream else 0
+                    '''
+                    cap = cv2.VideoCapture(downloaded_file_path)
+                    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                    duration = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) / cap.get(cv2.CAP_PROP_FPS))
+                    cap.release()
+    
                     # Send the video
                     await client.send_video(
                         chat_id=update.chat.id,
