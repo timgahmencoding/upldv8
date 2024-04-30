@@ -1,6 +1,5 @@
 import os
-import subprocess, re , json
-import pyfiglet
+import subprocess, re , json, pyfiglet
 import cv2
 from moviepy.editor import VideoFileClip
 from pyrogram import Client, filters
