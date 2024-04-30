@@ -44,25 +44,24 @@ async def handle_docs(client, update):
                     ]
                 else:
                     # Use yt-dlp with additional flags for videos
-                    
-                command_to_exec = [
-                    "yt-dlp",
-                    "--geo-bypass-country", "US",
-                    "--socket-timeout", "15",
-                    "--retries",
-                    "25",
-                    "--fragment-retries",
-                    "25",
-                    "--force-overwrites",
-                    "--no-keep-video",
-                    "-i",
-                    "--remux-video", "mkv",
-                    "--external-downloader", "aria2c",
-                    "--external-downloader-args", "aria2c:-x 4 -s 8 -k 1M",
-                    "--add-metadata",
-                    "-o", f"{download_directory}/{file_name}.%(ext)s",
-                    file_url
-                ]
+                    command_to_exec = [
+                        "yt-dlp",
+                        "--geo-bypass-country", "US",
+                        "--socket-timeout", "15",
+                        "--retries",
+                        "25",
+                        "--fragment-retries",
+                        "25",
+                        "--force-overwrites",
+                        "--no-keep-video",
+                        "-i",
+                        "--remux-video", "mkv",
+                        "--external-downloader", "aria2c",
+                        "--external-downloader-args", "aria2c:-x 4 -s 8 -k 1M",
+                        "--add-metadata",
+                        "-o", f"{download_directory}/{file_name}.%(ext)s",
+                        file_url
+                    ]
                 subprocess.run(command_to_exec, check=True)
                 downloaded_file_path = f"{download_directory}/{file_name}.mkv"
                 await progress_message.edit_text("Uploading...")
@@ -75,7 +74,6 @@ async def handle_docs(client, update):
                         document=downloaded_file_path,
                         caption=file_name
                     )
-                    os.remove(downloaded_file_path)
                 else:
                     # Generate thumbnail
                     thumbnail_path = f"{download_directory}/{file_name}.jpg"
@@ -123,4 +121,4 @@ custom_fig = pyfiglet.Figlet(font='small')
 print('\033[36m' + custom_fig.renderText('Bot deployed') + '\033[0m')
 
 bot.run()
-                
+                        
