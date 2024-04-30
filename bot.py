@@ -43,7 +43,7 @@ async def handle_docs(client, update):
                     "--fragment-retries",
                     "25",
                     "--force-overwrites",
-                    "-k",
+                    "--no-keep-video",
                 #    "--no-keep-video",
                     "-i",
                     "--convert-thumbnails", "jpg",
@@ -74,7 +74,7 @@ async def handle_docs(client, update):
                     # Assume the file is a video and process accordingly
                     # Generate thumbnail
                     thumbnail_path = f"{download_directory}/{file_name}.jpg"
-                    '''
+                    
                     subprocess.run([
                         "ffmpeg",
                         "-hide_banner",
@@ -108,12 +108,7 @@ async def handle_docs(client, update):
                     width = int(video_stream['width']) if video_stream else 0
                     height = int(video_stream['height']) if video_stream else 0
                     duration = float(video_stream['duration']) if video_stream else 0
-                    '''
-                    cap = cv2.VideoCapture(downloaded_file_path)
-                    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-                    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-                    duration = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) / cap.get(cv2.CAP_PROP_FPS))
-                    cap.release()
+                    
     
                     # Send the video
                     await client.send_video(
