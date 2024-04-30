@@ -50,7 +50,6 @@ async def handle_docs(client, update):
                     "--external-downloader", "aria2c",
                     "--external-downloader-args", "aria2c:-x 4 -s 16 -k 1M",
                     "--add-metadata",
-                    "--all-subs",
                     "-o", f"{download_directory}/{file_name}.%(ext)s",
                     file_url
                 ]
