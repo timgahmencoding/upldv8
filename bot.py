@@ -11,14 +11,14 @@ download_directory = "./downloads"  # Define the download directory
 if not os.path.exists(download_directory):
     os.makedirs(download_directory)
 
-HB = Client(
+bot = Client(
     "YOUTUBE Bot",
     bot_token=os.getenv("BOT_TOKEN"),
     api_id=int(os.getenv("API_ID")),
     api_hash=os.getenv("API_HASH")
 )
 
-@HB.on_message(filters.command("start") & filters.private)
+@bot.on_message(filters.command("start") & filters.private)
 async def start(client, update):
     urls_text = re.findall(r'\[(.*?)\]', update.text)
     for line in urls_text:
@@ -96,5 +96,5 @@ async def start(client, update):
             duration=duration
         )
 
-HB.run()
+bot.run()
       
