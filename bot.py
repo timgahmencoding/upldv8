@@ -1,11 +1,11 @@
 import os
 import subprocess
 from moviepy.editor import VideoFileClip
-from pyrogram import Client, filters
 from telethon import TelegramClient, events, sync
 from telethon.tl.types import DocumentAttributeVideo
 from dotenv import load_dotenv
 import pyfiglet
+from ethon.telefunc import fast_upload
 
 load_dotenv()
 
@@ -13,28 +13,19 @@ download_directory = "./downloads"
 if not os.path.exists(download_directory):
     os.makedirs(download_directory)
 
-# Initialize the Pyrogram client
-bot = Client(
-    "BULK-UPLOAD-BOT",
-    bot_token=os.getenv("BOT_TOKEN"),
-    api_id=int(os.getenv("API_ID")),
-    api_hash=os.getenv("API_HASH")
-)
-
 # Initialize the Telethon client
 telethon_client = TelegramClient('BULK-UPLOAD-BOT', int(os.getenv("API_ID")), os.getenv("API_HASH"))
 telethon_client.start(bot_token=os.getenv("BOT_TOKEN"))
 
-@bot.on_message(filters.command("start") & filters.private)
-async def start(client, update):
-    await update.reply_text("Please send the .txt file with the video and PDF URLs.")
+@telethon_client.on(events.NewMessage(pattern='/start'))
+async def start(event):
+    await event.respond("Please send the .txt file with the video and PDF URLs.")
 
-@bot.on_message(filters.document & filters.private)
-async def handle_docs(client, update):
-    progress_message = await update.reply_text("Preparing to download...")
-    if update.document.mime_type == "text/plain":
-        # Save the document
-        file_path = await update.download()
+@telethon_client.on(events.NewMessage(incoming=True, pattern=None))
+async def handle_docs(event):
+    if event.document:
+        progress_message = await event.respond("Preparing to download...")
+        file_path = await event.download_media(file=download_directory)
         # Read the file and extract URLs
         with open(file_path, 'r') as file:
             lines = file.readlines()
@@ -42,7 +33,7 @@ async def handle_docs(client, update):
                 file_name, file_url = line.strip().split(':', 1)
                 try:
                     # Update the progress message with the file name
-                    await progress_message.edit_text(f"Downloading {file_name}...")
+                    await progress_message.edit(f"Downloading {file_name}...")
 
                     # Determine if the URL is for a video or a PDF
                     if file_url.endswith('.pdf'):
@@ -65,8 +56,8 @@ async def handle_docs(client, update):
                             "--force-overwrites",
                             "--no-keep-video",
                             "-i",
-                            "--external-downloader", "aria2c",
-                            "--external-downloader-args", "aria2c:-x 4 -s 8 -k 1M",
+                            "--external-downloader", "wget",
+                          #  "--external-downloader-args", "aria2c:-x 4 -s 8 -k 1M",
                             "--add-metadata",
                             "-o", f"{download_directory}/{file_name}.%(ext)s",
                             file_url
@@ -75,16 +66,12 @@ async def handle_docs(client, update):
                     downloaded_file_path = f"{download_directory}/{file_name}"
 
                     # Update the progress message with the file name for uploading
-                    await progress_message.edit_text(f"Uploading {file_name}...")
+                    await progress_message.edit(f"Uploading {file_name}...")
 
-                    # Use Telethon to upload the file
+                    # Use fast_upload to upload the file
                     if downloaded_file_path.endswith('.pdf'):
-                        # Send the PDF with Telethon
-                        await telethon_client.send_file(
-                            update.chat.id,
-                            file=downloaded_file_path,
-                            caption=file_name
-                        )
+                        # Send the PDF with fast_upload
+                        await fast_upload(telethon_client, downloaded_file_path, event.chat_id, file_name=file_name)
                     else:
                         # Generate thumbnail and get video information using moviepy
                         thumbnail_path = f"{download_directory}/{file_name}.jpg"
@@ -94,39 +81,28 @@ async def handle_docs(client, update):
                         duration = int(clip.duration)
                         clip.close()
                         
-                        # Send the video with Telethon
-                        await telethon_client.send_file(
-                            update.chat.id,
-                            file=downloaded_file_path,
-                            thumb=thumbnail_path,
-                            caption=file_name,
-                            supports_streaming=True,
-                            attributes=[
-                                DocumentAttributeVideo(
-                                    duration=duration,
-                                    w=width,
-                                    h=height,
-                                    supports_streaming=True
-                                )
-                            ]
-                        )
+                        # Send the video with fast_upload
+                        await fast_upload(telethon_client, downloaded_file_path, event.chat_id, thumb=thumbnail_path, attributes=[
+                            DocumentAttributeVideo(
+                                duration=duration,
+                                w=width,
+                                h=height,
+                                supports_streaming=True
+                            )
+                        ], caption=file_name)
                 except subprocess.CalledProcessError as e:
                     # If a download fails, skip the file and continue with the next one
-                    await update.reply_text(f"Failed to download {file_name}. Skipping to the next file.")
+                    await event.respond(f"Failed to download {file_name}. Skipping to the next file.")
 
         # Delete the temporary files
-        await progress_message.delete()
         os.remove(file_path)
         if os.path.exists(thumbnail_path):
             os.remove(thumbnail_path)
         if os.path.exists(downloaded_file_path):
             os.remove(downloaded_file_path)
-    else:
-        await update.reply_text("Please send a valid .txt file.")
 
 # Print a custom figlet text
 custom_fig = pyfiglet.Figlet(font='small')
 print(custom_fig.renderText('Bot deployed'))
 
-bot.run()
-        
+telethon_client.run_until_disconnected()
