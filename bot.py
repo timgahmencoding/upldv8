@@ -7,6 +7,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+download_directory = "./downloads"  # Define the download directory
+if not os.path.exists(download_directory):
+    os.makedirs(download_directory)
+
 HB = Client(
     "YOUTUBE Bot",
     bot_token=os.getenv("BOT_TOKEN"),
