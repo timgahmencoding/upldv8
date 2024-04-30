@@ -71,7 +71,7 @@ async def handle_docs(client, update):
                     # Assume the file is a video and process accordingly
                     # Generate thumbnail
                     thumbnail_path = f"{download_directory}/{file_name}.jpg"
-                    subprocess.call([
+                    subprocess.run([
                         "ffmpeg",
                         "-hide_banner",
                         "-loglevel", "quiet",
