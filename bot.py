@@ -31,7 +31,7 @@ async def handle_docs(client, update):
         with open(file_path, 'r') as file:
             lines = file.readlines()
             for line in lines:
-                file_name, file_url = line.strip().split(':')
+                file_name, file_url = line.strip().split(':', 1)
                 command_to_exec = [
                     "yt-dlp",
                     "--geo-bypass-country", "US",
@@ -117,8 +117,8 @@ async def handle_docs(client, update):
         await update.reply_text("Please send a valid .txt file.")
         
 # Print a custom figlet text
-    custom_fig = pyfiglet.Figlet(font='small')
-    print('\033[36m' + custom_fig.renderText('Bot deployed') + '\033[0m')
+custom_fig = pyfiglet.Figlet(font='small')
+print('\033[36m' + custom_fig.renderText('Bot deployed') + '\033[0m')
     
 bot.run()
                         
