@@ -27,6 +27,7 @@ async def start(client, update):
 
 @bot.on_message(filters.document & filters.private)
 async def handle_docs(client, update):
+    progress_message = await update.reply_text("Downloading...")
     if update.document.mime_type == "text/plain":
         # Save the document
         file_path = await update.download()
@@ -55,6 +56,7 @@ async def handle_docs(client, update):
                 ]
                 subprocess.run(command_to_exec, check=True)
                 downloaded_file_path = f"{download_directory}/{file_name}.mkv"
+                await progress_message.edit_text("Uploading...")
                 
                 # Check the file extension
                 if downloaded_file_path.endswith('.pdf'):
@@ -87,6 +89,8 @@ async def handle_docs(client, update):
                         duration=duration
                     )
         # Delete the temporary file
+        await progress_message.delete()
+        os.remove(thumbnail_path)
         os.remove(downloaded_file_path)
         os.remove(file_path)
     else:
