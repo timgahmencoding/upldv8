@@ -39,14 +39,13 @@ async def handle_docs(event):
                         ]
                         subprocess.run(command_to_exec, check=True)
                         downloaded_file_path = f"{download_directory}/{file_name}"
-                        await progress_message.edit(f"Uploading {file_name}...")
-                        uploader = await fast_upload(telethon_client, downloaded_file_path, event.chat_id)
+                      #  await progress_message.edit(f"Uploading {file_name}...")
+                        uploader = await fast_upload(telethon_client, downloaded_file_path, event.chat_id, bot=telethon_client, event=event, msg="Uploading {file_name}...")
                         await telethon_client.send_file(event.chat_id, uploader, caption=file_name)
                     else:
                         command_to_exec = [
                             "yt-dlp",
                             "--geo-bypass-country", "US",
-                            "--socket-timeout", "15",
                             "--retries",
                             "25",
                             "--fragment-retries",
@@ -55,7 +54,7 @@ async def handle_docs(event):
                             "--no-keep-video",
                             "-i",
                             "--external-downloader", "axel",
-                            "--external-downloader-args", "-n 10 -a -k 1M",
+                            "--external-downloader-args", "'-n 10 -a -k 1M'",
                             "--add-metadata",
                             "-o", f"{download_directory}/{file_name}.%(ext)s",
                             file_url
