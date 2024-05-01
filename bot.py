@@ -68,7 +68,7 @@ async def handle_docs(event):
                         file_url
                     ]
                     subprocess.run(command_to_exec, check=True)
-                    downloaded_file_path = f"{video_download_directory}/{file_name}"
+                    downloaded_file_path = f"{video_download_directory}/{file_name}" + ".mp4"
                     thumbnail_path = f"{thumbnail_download_directory}/{file_name}.jpg"
                     clip = VideoFileClip(downloaded_file_path + '.mp4')
                     clip.save_frame(thumbnail_path, t=1)
