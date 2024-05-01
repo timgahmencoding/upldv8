@@ -54,21 +54,21 @@ async def handle_docs(event):
                             "--force-overwrites",
                             "--no-keep-video",
                             "-i",
-                            "--external-downloader", "wget",
+                            "--external-downloader", "axel",
                             "--add-metadata",
                             "-o", f"{download_directory}/{file_name}.%(ext)s",
                             file_url
                         ]
                         subprocess.run(command_to_exec, check=True)
                         downloaded_file_path = f"{download_directory}/{file_name}"
-                        await progress_message.edit(f"Uploading {file_name}...")
+                     #   await progress_message.edit(f"Uploading {file_name}...")
                         thumbnail_path = f"{download_directory}/{file_name}.jpg"
                         clip = VideoFileClip(downloaded_file_path + '.mp4')
                         clip.save_frame(thumbnail_path, t=1)
                         width, height = clip.size
                         duration = int(clip.duration)
                         clip.close()
-                        uploader = await fast_upload(telethon_client, downloaded_file_path, event.chat_id)
+                        uploader = await fast_upload(telethon_client, downloaded_file_path, event.chat_id, bot=telethon_client, event=event, msg="Uploading {file_name}...")
                         await telethon_client.send_file(event.chat_id, uploader, caption=file_name, thumb=thumbnail_path, attributes=[
                             DocumentAttributeVideo(
                                 duration=duration,
