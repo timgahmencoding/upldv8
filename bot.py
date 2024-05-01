@@ -58,7 +58,7 @@ async def handle_docs(event):
                         supports_streaming=True
                     )]
                     await progress_message.edit(f"Uploading {file_name}...")
-                    await telethon_client.send_file(event.chat_id, file=downloaded_video_path, thumb=thumb_image_path, attributes=attributes, caption={file_name})
+                    await telethon_client.send_file(event.chat_id, file=downloaded_video_path, thumb=thumb_image_path, attributes=attributes, caption=file_name)
             except Exception as e:
                 await event.respond(f"Failed to download {file_name}. Error: {str(e)}")
                 continue
