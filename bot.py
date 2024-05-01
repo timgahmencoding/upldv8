@@ -5,7 +5,7 @@ from telethon import TelegramClient, events, sync
 from telethon.tl.types import DocumentAttributeVideo
 from dotenv import load_dotenv
 import pyfiglet
-from .FastTelethon import download_file, upload_file
+from FastTelethon import download_file, upload_file
 
 load_dotenv()
 
