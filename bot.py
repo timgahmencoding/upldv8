@@ -19,7 +19,7 @@ if not os.path.exists(download_directory):
     os.makedirs(pdf_download_directory)
     os.makedirs(video_download_directory)
     os.makedirs(thumbnail_download_directory)
-    
+
 telethon_client = TelegramClient('BULK-UPLOAD-BOT', int(os.getenv("API_ID")), os.getenv("API_HASH"))
 telethon_client.start(bot_token=os.getenv("BOT_TOKEN"))
 
@@ -32,7 +32,7 @@ async def handle_docs(event):
     if event.document:
         progress_message = await event.respond("Preparing to download...")
         file_path = await event.download_media(file=download_directory)
-        with open(file_path, 'rb') as file:
+        with open(file_path, 'r') as file:
             uploader = await upload_file(telethon_client, file, event.chat_id)
             lines = file.readlines()
             for line in lines:
@@ -69,7 +69,6 @@ async def handle_docs(event):
                         ]
                         subprocess.run(command_to_exec, check=True)
                         downloaded_file_path = f"{video_download_directory}/{file_name}"
-                     #   await progress_message.edit(f"Uploading {file_name}...")
                         thumbnail_path = f"{thumbnail_download_directory}/{file_name}.jpg"
                         clip = VideoFileClip(downloaded_file_path + '.mp4')
                         clip.save_frame(thumbnail_path, t=1)
@@ -79,20 +78,8 @@ async def handle_docs(event):
                         
                         await progress_message.edit(f"Uploading {file_name}...")
                         with open(downloaded_file_path, 'rb') as upload_file_object:
-                        uploader = await upload_file(telethon_client, upload_file_object, event.chat_id)
-                        await telethon_client.send_file(event.chat_id, uploader, caption=file_name)
-                    else:
-                      #  uploader = await upload_file(telethon_client, downloaded_file_path, event.chat_id)
-                      #  await telethon_client.send_file(event.chat_id, uploader, caption=file_name, thumb=thumbnail_path, attributes=[
-                            DocumentAttributeVideo(
-                                duration=duration,
-                                w=width,
-                                h=height,
-                                supports_streaming=True
-                            )
-                        ])
-             #   except subprocess.CalledProcessError as e:
-             #       await event.respond(f"Failed to download {file_name}. Skipping to the next file.")
+                            uploader = await upload_file(telethon_client, upload_file_object, event.chat_id)
+                            await telethon_client.send_file(event.chat_id, uploader, caption=file_name)
                 except Exception as e:
                     await event.respond(f"Failed to download {file_name}. Error: {str(e)}")
                     continue
@@ -105,4 +92,3 @@ custom_fig = pyfiglet.Figlet(font='small')
 print(custom_fig.renderText('Bot deployed'))
 
 telethon_client.run_until_disconnected()
-        
