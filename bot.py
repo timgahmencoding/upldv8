@@ -81,6 +81,7 @@ async def handle_docs(event):
                         with open(downloaded_file_path, 'rb') as upload_file_object:
                         uploader = await upload_file(telethon_client, upload_file_object, event.chat_id)
                         await telethon_client.send_file(event.chat_id, uploader, caption=file_name)
+                    else:
                       #  uploader = await upload_file(telethon_client, downloaded_file_path, event.chat_id)
                       #  await telethon_client.send_file(event.chat_id, uploader, caption=file_name, thumb=thumbnail_path, attributes=[
                             DocumentAttributeVideo(
