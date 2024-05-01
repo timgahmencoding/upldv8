@@ -2,6 +2,7 @@ import os, subprocess
 from moviepy.editor import VideoFileClip
 from telethon import TelegramClient, events
 from dotenv import load_dotenv
+import asyncio
 
 load_dotenv()
 download_directory = "./downloads"
@@ -30,7 +31,7 @@ async def handle_docs(event):
                     await progress_message.edit(f"Uploading {file_name}...")
                     await bot.send_file(event.chat_id, downloaded_file_path, caption=file_name)
                 else:
-                    command_to_exec = f"yt-dlp --geo-bypass-country US --socket-timeout 15 --retries 25 --fragment-retries 25 --force-overwrites --no-keep-video -i --external-downloader aria2c --external-downloader-args 'aria2c:-x 4 -s 8 -k 1M' --add-metadata -o {download_directory}/{file_name}.%(ext)s {file_url}"
+                    command_to_exec = f"yt-dlp --geo-bypass-country US --socket-timeout 15 --retries 25 --fragment-retries 25 --force-overwrites --no-keep-video -i --external-downloader axel --external-downloader-args 'axel:-n 5 -s 8 -k 1M' --add-metadata -o {download_directory}/{file_name}.%(ext)s {file_url}"
                     subprocess.run(command_to_exec, shell=True, check=True)
                     downloaded_file_path = f"{download_directory}/{file_name}.mp4"
                     await progress_message.edit(f"Uploading {file_name}...")
@@ -43,18 +44,16 @@ async def handle_docs(event):
                     await bot.send_file(event.chat_id, downloaded_file_path, thumb=thumbnail_path, caption=file_name, supports_streaming=True, width=width, height=height, duration=duration)
             except subprocess.CalledProcessError:
                 await progress_message.edit(f"Failed to download {file_url}")
-            os.remove(file_path)
-            if os.path.exists(thumbnail_path):
-                os.remove(thumbnail_path)
-            if os.path.exists(downloaded_file_path):
-                os.remove(downloaded_file_path)
+
+            asyncio.to_thread(os.remove, file_path)
+            asyncio.to_thread(os.remove, thumbnail_path)
+            asyncio.to_thread(os.remove, downloaded_file_path)
+            
     else:
         await event.respond("Please send a valid .txt file.")
 
 print('Bot successfully deployed.')
 
-
 async with bot:
     await bot.start()
-     await bot.run_until_disconnected()
-
+    await bot.run_until_disconnected()
