@@ -22,16 +22,14 @@ os.makedirs(thumbnail_download_directory, exist_ok=True)
 telethon_client = TelegramClient('BULK-UPLOAD-BOT', int(os.getenv("API_ID")), os.getenv("API_HASH"))
 telethon_client.start(bot_token=os.getenv("BOT_TOKEN"))
 
-# Semaphore to limit concurrent downloads
 semaphore = asyncio.Semaphore(3)
-# Queue to manage uploads in order
 upload_queue = asyncio.Queue()
 
 @telethon_client.on(events.NewMessage(pattern='/start'))
 async def start(event):
     await event.respond("Please send the .txt file with the video and PDF URLs.")
 
-async def download_file(file_name, file_url, progress_message):
+async def download_file(event, file_name, file_url, progress_message):
     async with semaphore:
         try:
             await progress_message.edit(f"Downloading {file_name}...")
@@ -86,14 +84,13 @@ async def handle_docs(event):
         file_path = await event.download_media(file=download_directory)
         with open(file_path, 'r') as file:
             lines = file.readlines()
-        download_tasks = [download_file(line.strip().split(':', 1)[0], line.strip().split(':', 1)[1], progress_message) for line in lines]
+        download_tasks = [download_file(event, line.strip().split(':', 1)[0], line.strip().split(':', 1)[1], progress_message) for line in lines]
         upload_task = asyncio.create_task(upload_file())
         await asyncio.gather(*download_tasks)
-        await upload_queue.join()  # Wait until all files are uploaded
-        upload_task.cancel()  # Cancel the upload task
+        await upload_queue.join()
+        upload_task.cancel()
         os.remove(file_path)
 
-print("Bot successfully deployed.")
-
+print("SUCESSFULLY DEPLOYED")
 telethon_client.run_until_disconnected()
                 
