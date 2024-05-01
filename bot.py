@@ -41,8 +41,10 @@ async def download_file(event, file_name, file_url, progress_message):
                 downloaded_pdf_path = f"{pdf_download_directory}/{pdf_file_name}"
                 await upload_queue.put((event, downloaded_pdf_path, pdf_file_name, None, None, progress_update.id))
             else:
-                video_file_extension = '.mp4'
-                downloaded_video_path = f"{video_download_directory}/{file_name}{video_file_extension}"
+              #  video_file_extension = '.mp4'
+             #   downloaded_video_path = f"{video_download_directory}/{file_name}{video_file_extension}"
+                video_file_name = f"{file_name}.mp4"
+                downloaded_video_path = f"{video_download_directory}/{video_file_name}"
                 command_to_exec = ["yt-dlp", "--geo-bypass-country", "US", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "--external-downloader", "axel", "--external-downloader-args", "axel:-n 5 -a", "--add-metadata", "-o", downloaded_video_path, file_url]
                 subprocess.run(command_to_exec, check=True)
                 thumb_image_path = f"{thumbnail_download_directory}/{file_name}.jpg"
