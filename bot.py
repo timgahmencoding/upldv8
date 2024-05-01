@@ -39,7 +39,7 @@ async def handle_docs(event):
                     await progress_message.edit(f"Uploading {pdf_file_name}...")
                     await telethon_client.send_file(event.chat_id, file=downloaded_pdf_path, caption=pdf_file_name)
                 else:
-                    command_to_exec = ["yt-dlp", "--geo-bypass-country", "US", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "--external-downloader", "axel", "--external-downloader-args", "-n 5 -a -k 1M -s 16", "--add-metadata", "-o", f"{video_download_directory}/{file_name}", file_url]
+                    command_to_exec = ["yt-dlp", "--geo-bypass-country", "US", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "--external-downloader", "axel", "--external-downloader-args", "axel:-n 5 -s 8 -k 1M", "--add-metadata", "-o", f"{video_download_directory}/{file_name}", file_url]
                     subprocess.run(command_to_exec, check=True)
                     video_file_pattern = f"{video_download_directory}/{file_name}.*"
                     video_file_list = glob.glob(video_file_pattern)
