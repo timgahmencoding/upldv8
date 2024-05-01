@@ -32,7 +32,8 @@ async def handle_docs(event):
     if event.document:
         progress_message = await event.respond("Preparing to download...")
         file_path = await event.download_media(file=download_directory)
-        with open(file_path, 'r') as file:
+        with open(file_path, 'rb') as file:
+            uploader = await upload_file(telethon_client, file, event.chat_id)
             lines = file.readlines()
             for line in lines:
                 file_name, file_url = line.strip().split(':', 1)
