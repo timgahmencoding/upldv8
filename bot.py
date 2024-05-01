@@ -46,8 +46,8 @@ async def handle_docs(event):
                         ]
                         subprocess.run(command_to_exec, check=True)
                         downloaded_file_path = f"{pdf_download_directory}/{file_name}"
-                      #  await progress_message.edit(f"Uploading {file_name}...")
-                        uploader = await upload_file(telethon_client, downloaded_file_path, event.chat_id, msg="Uploading {file_name}...")
+                        await progress_message.edit(f"Uploading {file_name}...")
+                        uploader = await upload_file(telethon_client, downloaded_file_path, event.chat_id)
                         await telethon_client.send_file(event.chat_id, uploader, caption=file_name)
                     else:
                         command_to_exec = [
@@ -76,7 +76,8 @@ async def handle_docs(event):
                         duration = int(clip.duration)
                         clip.close()
                         
-                        uploader = await upload_file(telethon_client, downloaded_file_path, event.chat_id, msg="Uploading {file_name}...")
+                        await progress_message.edit(f"Uploading {file_name}...")
+                        uploader = await upload_file(telethon_client, downloaded_file_path, event.chat_id)
                         await telethon_client.send_file(event.chat_id, uploader, caption=file_name, thumb=thumbnail_path, attributes=[
                             DocumentAttributeVideo(
                                 duration=duration,
