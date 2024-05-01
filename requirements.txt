@@ -1,0 +1,5 @@
+telethon==1.23.0
+yt-dlp==2022.11.14
+opencv-python-headless==4.5.4.60
+python-dotenv==0.19.1
+uvloop==0.16.0
