@@ -34,7 +34,7 @@ async def progress_callback(current, total, progress_bar, last_update_time):
     if current != total:
         await asyncio.sleep(1)
     new_time = time.time()
-    if new_time - last_update_time[0] >= 1:
+    if new_time - last_update_time[0] >= 6:
         progress_bar.update(current - progress_bar.n)
         last_update_time[0] = new_time
 
