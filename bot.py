@@ -24,12 +24,14 @@ telethon_client.start(bot_token=os.getenv("BOT_TOKEN"))
 
 # Semaphore to limit concurrent downloads
 semaphore = asyncio.Semaphore(3)
+# Queue to manage uploads in order
+upload_queue = asyncio.Queue()
 
 @telethon_client.on(events.NewMessage(pattern='/start'))
 async def start(event):
     await event.respond("Please send the .txt file with the video and PDF URLs.")
 
-async def download_and_upload(event, file_name, file_url, progress_message):
+async def download_file(file_name, file_url, progress_message):
     async with semaphore:
         try:
             await progress_message.edit(f"Downloading {file_name}...")
@@ -38,9 +40,7 @@ async def download_and_upload(event, file_name, file_url, progress_message):
                 command_to_exec = ["yt-dlp", "-o", f"{pdf_download_directory}/{pdf_file_name}", file_url]
                 subprocess.run(command_to_exec, check=True)
                 downloaded_pdf_path = f"{pdf_download_directory}/{pdf_file_name}"
-                await progress_message.edit(f"Uploading {pdf_file_name}...")
-                await telethon_client.send_file(event.chat_id, file=downloaded_pdf_path, caption=pdf_file_name)
-                os.remove(downloaded_pdf_path)
+                await upload_queue.put((event, downloaded_pdf_path, pdf_file_name, None, None))
             else:
                 video_file_extension = '.mp4'
                 downloaded_video_path = f"{video_download_directory}/{file_name}{video_file_extension}"
@@ -60,12 +60,24 @@ async def download_and_upload(event, file_name, file_url, progress_message):
                     duration=duration,
                     supports_streaming=True
                 )]
-                await progress_message.edit(f"Uploading {file_name}...")
-                await telethon_client.send_file(event.chat_id, file=downloaded_video_path, thumb=thumb_image_path, attributes=attributes, caption=file_name)
-                os.remove(downloaded_video_path)
-                os.remove(thumb_image_path)
+                await upload_queue.put((event, downloaded_video_path, file_name, thumb_image_path, attributes))
         except Exception as e:
             await event.respond(f"Failed to download {file_name}. Error: {str(e)}")
+
+async def upload_file():
+    while True:
+        event, file_path, file_name, thumb_image_path, attributes = await upload_queue.get()
+        try:
+            await event.respond(f"Uploading {file_name}...")
+            if thumb_image_path and attributes:
+                await telethon_client.send_file(event.chat_id, file=file_path, thumb=thumb_image_path, attributes=attributes, caption=file_name)
+                os.remove(thumb_image_path)
+            else:
+                await telethon_client.send_file(event.chat_id, file=file_path, caption=file_name)
+            os.remove(file_path)
+        except Exception as e:
+            await event.respond(f"Failed to upload {file_name}. Error: {str(e)}")
+        upload_queue.task_done()
 
 @telethon_client.on(events.NewMessage(incoming=True, pattern=None))
 async def handle_docs(event):
@@ -74,16 +86,14 @@ async def handle_docs(event):
         file_path = await event.download_media(file=download_directory)
         with open(file_path, 'r') as file:
             lines = file.readlines()
-        tasks = []
-        for line in lines:
-            file_name, file_url = line.strip().split(':', 1)
-            task = download_and_upload(event, file_name, file_url, progress_message)
-            tasks.append(task)
-        for task in tasks:
-            await task  # This ensures serial upload
+        download_tasks = [download_file(line.strip().split(':', 1)[0], line.strip().split(':', 1)[1], progress_message) for line in lines]
+        upload_task = asyncio.create_task(upload_file())
+        await asyncio.gather(*download_tasks)
+        await upload_queue.join()  # Wait until all files are uploaded
+        upload_task.cancel()  # Cancel the upload task
         os.remove(file_path)
 
 print("Bot successfully deployed.")
 
 telethon_client.run_until_disconnected()
-            
+                
