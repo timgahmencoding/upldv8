@@ -66,7 +66,7 @@ async def upload_file():
     while True:
         event, file_path, file_name, thumb_image_path, attributes, progress_message_id = await upload_queue.get()
         try:
-            await event.respond(f"Uploading {file_name}...")
+          #  await event.respond(f"Uploading {file_name}...")
             if thumb_image_path and attributes:
                 await telethon_client.send_file(event.chat_id, file=file_path, thumb=thumb_image_path, attributes=attributes, caption=file_name)
                 os.remove(thumb_image_path)
@@ -93,5 +93,5 @@ async def handle_docs(event):
         os.remove(file_path)
         await telethon_client.delete_messages(event.chat_id, [progress_message.id])
 
-print("SUCCESSFULLY DEPLOYED")
+print("SUCESSFULLY DEPLOYED")
 telethon_client.run_until_disconnected()
