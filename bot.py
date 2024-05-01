@@ -67,8 +67,8 @@ async def handle_docs(event):
             os.remove(downloaded_pdf_path)
         if os.path.exists(downloaded_video_path):
             os.remove(downloaded_video_path)
-        if os.path.exists(thumbnail_path):
-            os.remove(thumbnail_path)
+        if os.path.exists(thumb_image_path):
+            os.remove(thumb_image_path)
             
 print("Bot successfully deployed.")
             
