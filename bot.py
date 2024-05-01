@@ -78,8 +78,11 @@ async def handle_docs(event):
                         clip.close()
                         
                         await progress_message.edit(f"Uploading {file_name}...")
-                        uploader = await upload_file(telethon_client, downloaded_file_path, event.chat_id)
-                        await telethon_client.send_file(event.chat_id, uploader, caption=file_name, thumb=thumbnail_path, attributes=[
+                        with open(downloaded_file_path, 'rb') as upload_file_object:
+                        uploader = await upload_file(telethon_client, upload_file_object, event.chat_id)
+                        await telethon_client.send_file(event.chat_id, uploader, caption=file_name)
+                      #  uploader = await upload_file(telethon_client, downloaded_file_path, event.chat_id)
+                      #  await telethon_client.send_file(event.chat_id, uploader, caption=file_name, thumb=thumbnail_path, attributes=[
                             DocumentAttributeVideo(
                                 duration=duration,
                                 w=width,
@@ -87,8 +90,11 @@ async def handle_docs(event):
                                 supports_streaming=True
                             )
                         ])
-                except subprocess.CalledProcessError as e:
-                    await event.respond(f"Failed to download {file_name}. Skipping to the next file.")
+             #   except subprocess.CalledProcessError as e:
+             #       await event.respond(f"Failed to download {file_name}. Skipping to the next file.")
+                except Exception as e:
+                    await event.respond(f"Failed to download {file_name}. Error: {str(e)}")
+                    continue
         os.remove(file_path)
         if os.path.exists(downloaded_file_path):
             os.remove(downloaded_file_path)
