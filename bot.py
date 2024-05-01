@@ -73,8 +73,9 @@ async def handle_docs(event):
                     )]
                     await progress_message.edit(f"Uploading {video_file_name}...")
                     # await telethon_client.send_file(event.chat_id, file=downloaded_video_path, thumb=thumb_image_path, attributes=attributes, caption=video_file_name)
-                    input_file = await upload_file(telethon_client, downloaded_video_path, video_file_name)
-                    await telethon_client.send_file(event.chat_id, file=input_file, thumb=thumb_image_path, attributes=attributes, caption=video_file_name)
+                    with open(downloaded_pdf_path, 'rb') as file:
+                        input_file = await upload_file(telethon_client, file, pdf_file_name)
+                        await telethon_client.send_file(event.chat_id, file=input_file, thumb=thumb_image_path, attributes=attributes, caption=video_file_name)
             
             except Exception as e:
                 await event.respond(f"Failed to download {original_file_name}. Error: {str(e)}")
