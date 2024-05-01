@@ -6,7 +6,7 @@ import cv2
 from telethon.tl.types import DocumentAttributeVideo
 import asyncio
 import uvloop
-from mautrix_telegram.util.parallel_file_transfer import upload_file
+from parallel_file_transfer import upload_file
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
