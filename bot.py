@@ -81,15 +81,16 @@ async def handle_docs(event):
                         duration = int(clip.duration)
                         clip.close()
                         
-                        # Send the video with fast_upload
-                        await fast_upload(telethon_client, downloaded_file_path, event.chat_id, thumb=thumbnail_path, attributes=[
+                        uploader = await fast_upload(telethon_client, downloaded_file_path, event.chat_id)
+                        await Client.send_file(event.chat_id, uploader, caption=file_name, thumb=thumbnail_path, attributes=[
                             DocumentAttributeVideo(
                                 duration=duration,
                                 w=width,
                                 h=height,
                                 supports_streaming=True
                             )
-                        ], caption=file_name)
+                        ])
+    
                 except subprocess.CalledProcessError as e:
                     # If a download fails, skip the file and continue with the next one
                     await event.respond(f"Failed to download {file_name}. Skipping to the next file.")
