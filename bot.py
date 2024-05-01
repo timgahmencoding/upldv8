@@ -3,6 +3,10 @@ from telethon import TelegramClient, events
 from dotenv import load_dotenv
 import cv2
 from telethon.tl.types import DocumentAttributeVideo
+import asyncio
+import uvloop
+
+asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 load_dotenv()
 download_directory = "./downloads"
