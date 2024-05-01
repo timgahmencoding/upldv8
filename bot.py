@@ -54,6 +54,6 @@ async def handle_docs(event):
 
 print('Bot successfully deployed.')
 
-async with bot:
-    await bot.start()
-    await bot.run_until_disconnected()
+
+bot.start()
+
