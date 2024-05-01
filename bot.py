@@ -87,12 +87,9 @@ async def handle_docs(event):
                 except subprocess.CalledProcessError as e:
                     await event.respond(f"Failed to download {file_name}. Skipping to the next file.")
         os.remove(file_path)
-        if os.path.exists(thumbnail_path):
-            os.remove(thumbnail_path)
         if os.path.exists(downloaded_file_path):
             os.remove(downloaded_file_path)
-            os.remove(video_download_directory)
-            os.remove(pdf_download_directory)
+            os.remove(thumbnail_path)
 
 custom_fig = pyfiglet.Figlet(font='small')
 print(custom_fig.renderText('Bot deployed'))
