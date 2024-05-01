@@ -7,7 +7,7 @@ load_dotenv()
 download_directory = "./downloads"
 os.makedirs(download_directory, exist_ok=True)
 
-bot = TelegramClient('BULK-UPLOAD-BOT', os.getenv("API_ID"), os.getenv("API_HASH")).start(bot_token=os.getenv("BOT_TOKEN"))
+bot = TelegramClient('BULK-UPLOAD-BOT', os.getenv("API_ID"), os.getenv("API_HASH"))
 
 @bot.on(events.NewMessage(pattern='/start', incoming=True))
 async def start(event):
@@ -22,27 +22,27 @@ async def handle_docs(event):
             lines = [line.strip().split(':', 1) for line in file]
         for file_name, file_url in lines:
             await progress_message.edit(f"Downloading {file_name}...")
-            if file_url.endswith('.pdf'):
-                command_to_exec = f"yt-dlp -o {download_directory}/{file_name} {file_url}"
-                subprocess.run(command_to_exec, shell=True, check=True)
-                downloaded_file_path = f"{download_directory}/{file_name}"
-                await progress_message.edit(f"Uploading {file_name}...")
-                await bot.send_file(event.chat_id, downloaded_file_path, caption=file_name)
-            else:
-                command_to_exec = f"yt-dlp --geo-bypass-country US --socket-timeout 15 --retries 25 --fragment-retries 25 --force-overwrites --no-keep-video -i --external-downloader axel --external-downloader-args 'axel:-n 5 -s 10 -k 1M' --add-metadata -o {download_directory}/{file_name}.%(ext)s {file_url}"
-                subprocess.run(command_to_exec, shell=True, check=True)
-                downloaded_file_path = f"{download_directory}/{file_name}.mp4"
-                await progress_message.edit(f"Uploading {file_name}...")
-                thumbnail_path = f"{download_directory}/{file_name}.jpg"
-                try:
+            try:
+                if file_url.endswith('.pdf'):
+                    command_to_exec = f"yt-dlp -o {download_directory}/{file_name} {file_url}"
+                    subprocess.run(command_to_exec, shell=True, check=True)
+                    downloaded_file_path = f"{download_directory}/{file_name}"
+                    await progress_message.edit(f"Uploading {file_name}...")
+                    await bot.send_file(event.chat_id, downloaded_file_path, caption=file_name)
+                else:
+                    command_to_exec = f"yt-dlp --geo-bypass-country US --socket-timeout 15 --retries 25 --fragment-retries 25 --force-overwrites --no-keep-video -i --external-downloader aria2c --external-downloader-args 'aria2c:-x 4 -s 8 -k 1M' --add-metadata -o {download_directory}/{file_name}.%(ext)s {file_url}"
+                    subprocess.run(command_to_exec, shell=True, check=True)
+                    downloaded_file_path = f"{download_directory}/{file_name}.mp4"
+                    await progress_message.edit(f"Uploading {file_name}...")
+                    thumbnail_path = f"{download_directory}/{file_name}.jpg"
                     clip = VideoFileClip(downloaded_file_path)
                     clip.save_frame(thumbnail_path, t=1)
                     width, height = clip.size
                     duration = int(clip.duration)
                     clip.close()
                     await bot.send_file(event.chat_id, downloaded_file_path, thumb=thumbnail_path, caption=file_name, supports_streaming=True, width=width, height=height, duration=duration)
-                except Exception:
-                    await event.respond("Failed to process the video with moviepy.")
+            except subprocess.CalledProcessError:
+                await progress_message.edit(f"Failed to download {file_url}")
             os.remove(file_path)
             if os.path.exists(thumbnail_path):
                 os.remove(thumbnail_path)
@@ -51,5 +51,14 @@ async def handle_docs(event):
     else:
         await event.respond("Please send a valid .txt file.")
 
-bot.run()
-        
+print('Bot successfully deployed.')
+
+async def main():
+    async with bot:
+        await bot.start()
+        await bot.run_until_disconnected()
+
+if __name__ == '__main__':
+    import asyncio
+    asyncio.run(main())
+    
