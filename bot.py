@@ -8,6 +8,10 @@ import asyncio
 import uvloop
 from parallel_file_transfer import upload_file
 
+def sanitize_filename(filename):
+    return filename.replace('(', '').replace(')', '').replace(' ', '_')
+    
+
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 load_dotenv()
