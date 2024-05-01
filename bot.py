@@ -41,7 +41,7 @@ async def handle_docs(event):
                 if file_url.endswith('.pdf'):
                     command_to_exec = [
                         "yt-dlp",
-                        "-o", f"{pdf_download_directory}/{file_name}",              
+                        "-o", f"{pdf_download_directory}/{file_name}.pdf",              
                         file_url
                     ]
                     subprocess.run(command_to_exec, check=True)
@@ -64,7 +64,7 @@ async def handle_docs(event):
                         "--external-downloader", "axel",
                         "--external-downloader-args", "'-n 5 -a -k 1M -s 16'"
                         "--add-metadata",
-                        "-o", f"{video_download_directory}/{file_name}.%(ext)s",
+                        "-o", f"{video_download_directory}/{file_name}",
                         file_url
                     ]
                     subprocess.run(command_to_exec, check=True)
