@@ -10,8 +10,17 @@ from ethon.telefunc import fast_upload
 load_dotenv()
 
 download_directory = "./downloads"
+pdf_download_directory = f"{download_directory}/pdfs"
+video_download_directory = f"{download_directory}/video"
+thumbnail_download_directory = f"{download_directory}/thumbnail"
 if not os.path.exists(download_directory):
     os.makedirs(download_directory)
+if not os.path.exists(pdf_download_directory):
+    os.makedirs(pdf_download_directory)
+if not os.path.exists(video_download_directory):
+    os.makedirs(video_download_directory
+if not os.path.exists(thumbnail_download_directory):
+    os.makedirs(thumbnail_download_directory)
 
 telethon_client = TelegramClient('BULK-UPLOAD-BOT', int(os.getenv("API_ID")), os.getenv("API_HASH"))
 telethon_client.start(bot_token=os.getenv("BOT_TOKEN"))
@@ -34,11 +43,11 @@ async def handle_docs(event):
                     if file_url.endswith('.pdf'):
                         command_to_exec = [
                             "yt-dlp",
-                            "-o", f"{download_directory}/{file_name}",
+                            "-o", f"{pdf_download_directory}/{file_name}",              
                             file_url
                         ]
                         subprocess.run(command_to_exec, check=True)
-                        downloaded_file_path = f"{download_directory}/{file_name}"
+                        downloaded_file_path = f"{pdf_download_directory}/{file_name}"
                       #  await progress_message.edit(f"Uploading {file_name}...")
                         uploader = await fast_upload(telethon_client, downloaded_file_path, event.chat_id, bot=telethon_client, event=event, msg="Uploading {file_name}...")
                         await telethon_client.send_file(event.chat_id, uploader, caption=file_name)
@@ -56,13 +65,13 @@ async def handle_docs(event):
                             "--external-downloader", "axel",
                             "--external-downloader-args", "'-n 4 -a -k 1M -s 16'"
                             "--add-metadata",
-                            "-o", f"{download_directory}/{file_name}.%(ext)s",
+                            "-o", f"{video_download_directory}/{file_name}.%(ext)s",
                             file_url
                         ]
                         subprocess.run(command_to_exec, check=True)
-                        downloaded_file_path = f"{download_directory}/{file_name}"
+                        downloaded_file_path = f"{video_download_directory}/{file_name}"
                      #   await progress_message.edit(f"Uploading {file_name}...")
-                        thumbnail_path = f"{download_directory}/{file_name}.jpg"
+                        thumbnail_path = f"{thumbnail_download_directory}/{file_name}.jpg"
                         clip = VideoFileClip(downloaded_file_path + '.mp4')
                         clip.save_frame(thumbnail_path, t=1)
                         width, height = clip.size
@@ -84,6 +93,8 @@ async def handle_docs(event):
             os.remove(thumbnail_path)
         if os.path.exists(downloaded_file_path):
             os.remove(downloaded_file_path)
+            os.remove(video_download_directory)
+            os.remove(pdf_download_directory)
 
 custom_fig = pyfiglet.Figlet(font='small')
 print(custom_fig.renderText('Bot deployed'))
