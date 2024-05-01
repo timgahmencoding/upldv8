@@ -3,7 +3,6 @@ from moviepy.editor import VideoFileClip
 from telethon import TelegramClient, events
 from dotenv import load_dotenv
 import pyfiglet
-from FastTelethon import upload_file
 
 load_dotenv()
 download_directory = "./downloads"
@@ -38,9 +37,7 @@ async def handle_docs(event):
                     subprocess.run(command_to_exec, check=True)
                     downloaded_pdf_path = f"{pdf_download_directory}/{pdf_file_name}"
                     await progress_message.edit(f"Uploading {pdf_file_name}...")
-                    with open(downloaded_pdf_path, 'rb') as upload_file_object:
-                        uploader = await upload_file(telethon_client, upload_file_object, event.chat_id)
-                        await telethon_client.send_file(event.chat_id, uploader, caption=pdf_file_name)
+                    await telethon_client.send_file(event.chat_id, file=downloaded_pdf_path, caption=pdf_file_name)
                 else:
                     command_to_exec = ["yt-dlp", "--geo-bypass-country", "US", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "--external-downloader", "axel", "--external-downloader-args", "-n 5 -a -k 1M -s 16", "--add-metadata", "-o", f"{video_download_directory}/{file_name}", file_url]
                     subprocess.run(command_to_exec, check=True)
@@ -53,9 +50,7 @@ async def handle_docs(event):
                         clip.save_frame(thumbnail_path, t=1)
                         clip.close()
                         await progress_message.edit(f"Uploading {file_name}...")
-                        with open(downloaded_video_path, 'rb') as upload_file_object:
-                            uploader = await upload_file(telethon_client, upload_file_object, event.chat_id)
-                            await telethon_client.send_file(event.chat_id, uploader, caption=file_name)
+                        await telethon_client.send_file(event.chat_id, file=downloaded_video_path, caption=file_name)
             except Exception as e:
                 await event.respond(f"Failed to download {file_name}. Error: {str(e)}")
                 continue
@@ -70,4 +65,4 @@ async def handle_docs(event):
 custom_fig = pyfiglet.Figlet(font='small')
 print(custom_fig.renderText('Bot deployed'))
 telethon_client.run_until_disconnected()
-        
+                    
