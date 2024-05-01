@@ -16,11 +16,8 @@ thumbnail_download_directory = f"{download_directory}/thumbnail"
 
 if not os.path.exists(download_directory):
     os.makedirs(download_directory)
-if not os.path.exists(pdf_download_directory):
     os.makedirs(pdf_download_directory)
-if not os.path.exists(video_download_directory):
     os.makedirs(video_download_directory)
-if not os.path.exists(thumbnail_download_directory):
     os.makedirs(thumbnail_download_directory)
     
 telethon_client = TelegramClient('BULK-UPLOAD-BOT', int(os.getenv("API_ID")), os.getenv("API_HASH"))
