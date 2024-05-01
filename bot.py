@@ -53,12 +53,8 @@ async def handle_docs(event):
 
 print('Bot successfully deployed.')
 
-async def main():
-    async with bot:
-        await bot.start()
-        await bot.run_until_disconnected()
 
-if __name__ == '__main__':
-    import asyncio
-    asyncio.run(main())
-    
+async with bot:
+    await bot.start()
+     await bot.run_until_disconnected()
+
