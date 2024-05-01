@@ -1,60 +1,60 @@
-import os, subprocess
-from moviepy.editor import VideoFileClip
-from telethon import TelegramClient, events
+import os, asyncio
+from telethon import TelegramClient, events, sync
 from dotenv import load_dotenv
-import asyncio
+from moviepy.editor import VideoFileClip
 
 load_dotenv()
-download_directory = "./downloads"
-os.makedirs(download_directory, exist_ok=True)
+download_dir = "./downloads"
+os.makedirs(download_dir, exist_ok=True)
 
-bot = TelegramClient('BULK-UPLOAD-BOT', os.getenv("API_ID"), os.getenv("API_HASH"))
+bot = TelegramClient('bot', os.getenv("API_ID"), os.getenv("API_HASH")).start()
 
-@bot.on(events.NewMessage(pattern='/start', incoming=True))
+@bot.on(events.NewMessage(pattern='/start'))
 async def start(event):
-    await event.respond("Please send the .txt file with the video and PDF URLs.")
+    await event.respond("Send the .txt file with URLs.")
 
-@bot.on(events.NewMessage(incoming=True, pattern='.*\\.txt$'))
+@bot.on(events.NewMessage(pattern='.*\\.txt$'))
 async def handle_docs(event):
-    progress_message = await event.respond("Preparing to download...")
     if event.document:
-        file_path = await event.download_media()
-        with open(file_path, 'r') as file:
-            lines = [line.strip().split(':', 1) for line in file]
-        for file_name, file_url in lines:
-            await progress_message.edit(f"Downloading {file_name}...")
+        path = await event.download_media(file=download_dir)
+        with open(path, 'r') as f:
+            lines = (line.strip().split(':', 1) for line in f)
+        for name, url in lines:
             try:
-                if file_url.endswith('.pdf'):
-                    command_to_exec = f"yt-dlp -o {download_directory}/{file_name} {file_url}"
-                    subprocess.run(command_to_exec, shell=True, check=True)
-                    downloaded_file_path = f"{download_directory}/{file_name}"
-                    await progress_message.edit(f"Uploading {file_name}...")
-                    await bot.send_file(event.chat_id, downloaded_file_path, caption=file_name)
+                if url.endswith('.pdf'):
+                    await download_and_send(bot, event, url, name, 'pdf')
                 else:
-                    command_to_exec = f"yt-dlp --geo-bypass-country US --socket-timeout 15 --retries 25 --fragment-retries 25 --force-overwrites --no-keep-video -i --external-downloader axel --external-downloader-args 'axel:-n 5 -s 8 -k 1M' --add-metadata -o {download_directory}/{file_name}.%(ext)s {file_url}"
-                    subprocess.run(command_to_exec, shell=True, check=True)
-                    downloaded_file_path = f"{download_directory}/{file_name}.mp4"
-                    await progress_message.edit(f"Uploading {file_name}...")
-                    thumbnail_path = f"{download_directory}/{file_name}.jpg"
-                    clip = VideoFileClip(downloaded_file_path)
-                    clip.save_frame(thumbnail_path, t=1)
-                    width, height = clip.size
-                    duration = int(clip.duration)
-                    clip.close()
-                    await bot.send_file(event.chat_id, downloaded_file_path, thumb=thumbnail_path, caption=file_name, supports_streaming=True, width=width, height=height, duration=duration)
-            except subprocess.CalledProcessError:
-                await progress_message.edit(f"Failed to download {file_url}")
-
-            asyncio.to_thread(os.remove, file_path)
-            asyncio.to_thread(os.remove, thumbnail_path)
-            asyncio.to_thread(os.remove, downloaded_file_path)
-            
+                    await download_and_send(bot, event, url, name, 'video')
+            except Exception as e:
+                await event.respond(f"Error downloading {url}: {str(e)}")
+            finally:
+                cleanup_files(path, name, url.endswith('.pdf'))
     else:
-        await event.respond("Please send a valid .txt file.")
+        await event.respond("Invalid file.")
 
-print('Bot successfully deployed.')
+def cleanup_files(path, name, is_pdf):
+    os.remove(path)
+    if not is_pdf:
+        os.remove(f"{download_dir}/{name}.jpg")
+        os.remove(f"{download_dir}/{name}.mp4")
 
-if __name__ == "__main__":
-    bot.start()
-    bot.run_until_disconnected()
+async def download_and_send(bot, event, url, name, file_type):
+    ext = 'pdf' if file_type == 'pdf' else 'mp4'
+    file_path = f"{download_dir}/{name}.{ext}"
+    await bot.send_message(event.chat_id, f"Downloading {name}...")
+    # Replace with your download logic
+    await bot.send_message(event.chat_id, f"Uploading {name}...")
+    if file_type == 'video':
+        thumb_path = f"{download_dir}/{name}.jpg"
+        clip = VideoFileClip(file_path)
+        clip.save_frame(thumb_path, t=1)
+        w, h = clip.size
+        d = int(clip.duration)
+        clip.close()
+        await bot.send_file(event.chat_id, file_path, thumb=thumb_path, caption=name, supports_streaming=True, width=w, height=h, duration=d)
+    else:
+        await bot.send_file(event.chat_id, file_path, caption=name)
 
+print('Bot deployed.')
+bot.run_until_disconnected()
+                                            
