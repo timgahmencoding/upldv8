@@ -77,7 +77,11 @@ async def handle_docs(event):
                     clip.close()
                     await progress_message.edit(f"Uploading {file_name}...")
                     with open(downloaded_file_path, 'rb') as upload_file_object:
-                        uploader = await upload_file(telethon_client, upload_file_object, event.chat_id)
+                        uploader = await upload_file(
+                            client=telethon_client,
+                            file=upload_file_object,
+                            name=file_name
+                        )
                         await telethon_client.send_file(event.chat_id, uploader, caption=file_name)
             except Exception as e:
                 await event.respond(f"Failed to download {file_name}. Error: {str(e)}")
