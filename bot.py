@@ -32,17 +32,17 @@ async def start(event):
 async def download_file(event, file_name, file_url, progress_message):
     async with semaphore:
         try:
-            await progress_message.edit(f"Downloading {file_name}...")
+            progress_update = await progress_message.edit(f"Downloading {file_name}...")
             if file_url.endswith('.pdf'):
                 pdf_file_name = f"{file_name}.pdf"
                 command_to_exec = ["yt-dlp", "-o", f"{pdf_download_directory}/{pdf_file_name}", file_url]
                 subprocess.run(command_to_exec, check=True)
                 downloaded_pdf_path = f"{pdf_download_directory}/{pdf_file_name}"
-                await upload_queue.put((event, downloaded_pdf_path, pdf_file_name, None, None))
+                await upload_queue.put((event, downloaded_pdf_path, pdf_file_name, None, None, progress_update.id))
             else:
                 video_file_extension = '.mp4'
                 downloaded_video_path = f"{video_download_directory}/{file_name}{video_file_extension}"
-                command_to_exec = ["yt-dlp", "--geo-bypass-country", "US", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "--external-downloader", "axel", "--external-downloader-args", "axel:-n 5 -a", "--add-metadata", "-o", downloaded_video_path, file_url]
+                command_to_exec = ["yt-dlp", "--geo-bypass-country", "US", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "--external-downloader", "axel", "--external-downloader-args", "axel:-n 10 -a", "--add-metadata", "-o", downloaded_video_path, file_url]
                 subprocess.run(command_to_exec, check=True)
                 thumb_image_path = f"{thumbnail_download_directory}/{file_name}.jpg"
                 thumb_cmd = f'ffmpeg -hide_banner -loglevel quiet -i {downloaded_video_path} -ss 00:00:02 -vframes 1 -update 1 {thumb_image_path}'
@@ -58,13 +58,13 @@ async def download_file(event, file_name, file_url, progress_message):
                     duration=duration,
                     supports_streaming=True
                 )]
-                await upload_queue.put((event, downloaded_video_path, file_name, thumb_image_path, attributes))
+                await upload_queue.put((event, downloaded_video_path, file_name, thumb_image_path, attributes, progress_update.id))
         except Exception as e:
             await event.respond(f"Failed to download {file_name}. Error: {str(e)}")
 
 async def upload_file():
     while True:
-        event, file_path, file_name, thumb_image_path, attributes = await upload_queue.get()
+        event, file_path, file_name, thumb_image_path, attributes, progress_message_id = await upload_queue.get()
         try:
             await event.respond(f"Uploading {file_name}...")
             if thumb_image_path and attributes:
@@ -73,6 +73,7 @@ async def upload_file():
             else:
                 await telethon_client.send_file(event.chat_id, file=file_path, caption=file_name)
             os.remove(file_path)
+            await telethon_client.delete_messages(event.chat_id, [progress_message_id])
         except Exception as e:
             await event.respond(f"Failed to upload {file_name}. Error: {str(e)}")
         upload_queue.task_done()
@@ -90,7 +91,7 @@ async def handle_docs(event):
         await upload_queue.join()
         upload_task.cancel()
         os.remove(file_path)
-
-print("SUCESSFULLY DEPLOYED")
+        await telethon_client.delete_messages(event.chat_id, [progress_message.id])
+print("SUCCESSFULLY DEPLOYED")
 telethon_client.run_until_disconnected()
-                
+            
