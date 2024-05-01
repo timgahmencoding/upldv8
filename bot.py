@@ -5,7 +5,7 @@ from telethon import TelegramClient, events, sync
 from telethon.tl.types import DocumentAttributeVideo
 from dotenv import load_dotenv
 import pyfiglet
-from ethon.telefunc import fast_upload
+from .FastTelethon import download_file, upload_file
 
 load_dotenv()
 
@@ -47,7 +47,7 @@ async def handle_docs(event):
                         subprocess.run(command_to_exec, check=True)
                         downloaded_file_path = f"{pdf_download_directory}/{file_name}"
                       #  await progress_message.edit(f"Uploading {file_name}...")
-                        uploader = await fast_upload(telethon_client, downloaded_file_path, event.chat_id, bot=telethon_client, event=event, msg="Uploading {file_name}...")
+                        uploader = await upload_file(telethon_client, downloaded_file_path, event.chat_id, bot=telethon_client, event=event, msg="Uploading {file_name}...")
                         await telethon_client.send_file(event.chat_id, uploader, caption=file_name)
                     else:
                         command_to_exec = [
@@ -75,7 +75,7 @@ async def handle_docs(event):
                         width, height = clip.size
                         duration = int(clip.duration)
                         clip.close()
-                        uploader = await fast_upload(telethon_client, downloaded_file_path, event.chat_id, bot=telethon_client, event=event, msg="Uploading {file_name}...")
+                        uploader = await upload_file(telethon_client, downloaded_file_path, event.chat_id, bot=telethon_client, event=event, msg="Uploading {file_name}...")
                         await telethon_client.send_file(event.chat_id, uploader, caption=file_name, thumb=thumbnail_path, attributes=[
                             DocumentAttributeVideo(
                                 duration=duration,
