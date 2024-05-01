@@ -55,5 +55,6 @@ async def handle_docs(event):
 print('Bot successfully deployed.')
 
 if __name__ == "__main__":
+    bot.start()
     bot.run_until_disconnected()
 
