@@ -55,6 +55,7 @@ async def handle_docs(event):
                             "--no-keep-video",
                             "-i",
                             "--external-downloader", "axel",
+                            '--external-downloader-args", "-n 10 -a -k 1M"
                             "--add-metadata",
                             "-o", f"{download_directory}/{file_name}.%(ext)s",
                             file_url
