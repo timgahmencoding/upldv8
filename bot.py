@@ -1,7 +1,7 @@
 import os, subprocess, glob
 from telethon import TelegramClient, events
 from dotenv import load_dotenv
-from ethon.pyfunc import video_metadata
+import cv2
 from telethon.tl.types import DocumentAttributeVideo
 
 load_dotenv()
@@ -39,7 +39,7 @@ async def handle_docs(event):
                     await progress_message.edit(f"Uploading {pdf_file_name}...")
                     await telethon_client.send_file(event.chat_id, file=downloaded_pdf_path, caption=pdf_file_name)
                 else:
-                    command_to_exec = ["yt-dlp", "--geo-bypass-country", "US", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "--external-downloader", "axel", "--external-downloader-args", "axel:-n 5 -a", "--add-metadata", "-o", f"{video_download_directory}/{file_name}", file_url]
+                    command_to_exec = ["yt-dlp", "--geo-bypass-country", "US", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "--external-downloader", "axel", "--external-downloader-args", "axel:-n 10 -a", "--add-metadata", "-o", f"{video_download_directory}/{file_name}", file_url]
                     subprocess.run(command_to_exec, check=True)
                     video_file_pattern = f"{video_download_directory}/{file_name}.*"
                     video_file_list = glob.glob(video_file_pattern)
@@ -48,13 +48,14 @@ async def handle_docs(event):
                         thumb_image_path = f"{thumbnail_download_directory}/{file_name}.jpg"
                         thumb_cmd = f'ffmpeg -hide_banner -loglevel quiet -i {downloaded_video_path} -ss 00:00:02 -vframes 1 -update 1 {thumb_image_path}'
                         os.system(thumb_cmd)
-                        metadata = video_metadata(downloaded_video_path)
-                        width = metadata.get('width')
-                        height = metadata.get('height')
-                        duration = metadata.get('duration')
+                        vid = cv2.VideoCapture(downloaded_video_path)
+                        width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
+                        height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
+                        duration = int(vid.get(cv2.CAP_PROP_FRAME_COUNT) / vid.get(cv2.CAP_PROP_FPS))
+                        vid.release()
                         attributes = [DocumentAttributeVideo(
-                            w=width,
-                            h=height,
+                            w=int(width),
+                            h=int(height),
                             duration=duration,
                             supports_streaming=True
                         )]
@@ -70,6 +71,8 @@ async def handle_docs(event):
             os.remove(downloaded_video_path)
         if os.path.exists(thumbnail_path):
             os.remove(thumbnail_path)
-
+            
+print("Bot successfully deployed.")
+            
 telethon_client.run_until_disconnected()
-                    
+
