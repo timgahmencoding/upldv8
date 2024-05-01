@@ -69,12 +69,27 @@ async def upload_file():
         try:
             file = open(file_path, 'rb')
             input_file = await parallel_upload_file(telethon_client, file, file_name)
+            file.close()
+            
             if thumb_image_path and attributes:
-                await telethon_client.send_file(event.chat_id, file=input_file, thumb=thumb_image_path, attributes=attributes, caption=file_name)
+                await telethon_client.send_file(
+                    event.chat_id,
+                    file=input_file,
+                    thumb=thumb_image_path,
+                    attributes=attributes,
+                    caption=file_name,
+                    force_document=False,
+                    supports_streaming=True
+                )
                 os.remove(thumb_image_path)
             else:
-                await telethon_client.send_file(event.chat_id, file=input_file, caption=file_name)
-            file.close()
+                await telethon_client.send_file(
+                    event.chat_id,
+                    file=input_file,
+                    caption=file_name,
+                    force_document=False
+                )
+            
             os.remove(file_path)
             await telethon_client.delete_messages(event.chat_id, [progress_message_id])
         except Exception as e:
