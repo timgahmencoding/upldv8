@@ -6,13 +6,15 @@ import uvloop
 import time
 import unicodedata
 import re
+import json
 from telethon import TelegramClient, events
 from telethon.tl.types import DocumentAttributeVideo
+from telethon.errors import FloodWaitError
 from dotenv import load_dotenv
 from parallel_file_transfer import fast_upload, progress, time_formatter
-from telethon.errors.rpcerrorlist import FloodWaitError
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+
 load_dotenv()
 
 download_directory = "./downloads"
@@ -26,7 +28,16 @@ os.makedirs(thumbnail_download_directory, exist_ok=True)
 telethon_client = TelegramClient('BULK-UPLOAD-BOT', int(os.getenv("API_ID")), os.getenv("API_HASH"))
 telethon_client.start(bot_token=os.getenv("BOT_TOKEN"))
 
-cancel_event = asyncio.Event()
+def save_checkpoint(checkpoint_file, data):
+    with open(checkpoint_file, 'w') as f:
+        json.dump(data, f)
+
+def load_checkpoint(checkpoint_file):
+    try:
+        with open(checkpoint_file, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
 
 def sanitize_filename(filename):
     filename = unicodedata.normalize('NFKD', filename).encode('ascii', 'ignore').decode('ascii')
@@ -39,11 +50,6 @@ def sanitize_filename(filename):
 async def start(event):
     await event.respond("Please send the .txt file with the video and PDF URLs.")
 
-@telethon_client.on(events.NewMessage(pattern='/cancel'))
-async def cancel(event):
-    cancel_event.set()
-    await event.respond("Cancelled the operation.")
-
 @telethon_client.on(events.NewMessage(incoming=True, pattern=None))
 async def handle_docs(event):
     downloaded_pdf_path = None
@@ -54,17 +60,18 @@ async def handle_docs(event):
         file_path = await event.download_media(file=download_directory)
         with open(file_path, 'r') as file:
             lines = file.readlines()
-        start_index_message = await event.respond("Enter the index from where to start downloading:")
-        response = await event.wait(events.NewMessage(incoming=True, from_users=event.sender_id))
-        start_index_text = response.text
-        start_index = int(start_index_text) if start_index_text.isdigit() else 0
 
-        for index, line in enumerate(lines[start_index:], start=start_index):
-            if cancel_event.is_set():
-                cancel_event.clear()
-                return
+        checkpoint_file = 'download_checkpoint.json'
+        checkpoint_data = load_checkpoint(checkpoint_file)
+
+        for line in lines:
             original_file_name, file_url = line.strip().split(':', 1)
             file_name = sanitize_filename(original_file_name)
+
+            if checkpoint_data.get(file_name):
+                print(f"{file_name} has already been downloaded. Skipping...")
+                continue
+
             try:
                 await progress_message.edit(f"Downloading {original_file_name}...")
                 if file_url.endswith('.pdf'):
@@ -79,13 +86,7 @@ async def handle_docs(event):
                     video_file_name = f"{file_name}.mp4"
                     downloaded_video_path = f"{video_download_directory}/{video_file_name}"
                     command_to_exec = ["yt-dlp", "--geo-bypass-country", "IN", "-N", "6", "--socket-timeout", "20", "--no-part", "--concurrent-fragments", "10", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "--add-metadata", "-o", downloaded_video_path, file_url]
-                    try:
-                        subprocess.run(command_to_exec, check=True)
-                    except subprocess.CalledProcessError as e:
-                        if 'FloodWait' in str(e):
-                            wait_time = int(re.search(r'\d+', str(e)).group())
-                            await asyncio.sleep(wait_time)
-                            continue
+                    subprocess.run(command_to_exec, check=True)
                     thumb_image_path = f"{thumbnail_download_directory}/{file_name}.jpg"
                     thum_command_to_exec = ['ffmpeg', '-hide_banner', '-loglevel', 'quiet', '-i', downloaded_video_path, '-vf', 'thumbnail,scale=1280:-1', '-frames:v', '1', thumb_image_path]
                     subprocess.run(thum_command_to_exec, check=True)
@@ -103,6 +104,13 @@ async def handle_docs(event):
                     start_time = time.time() * 1000
                     input_file = await fast_upload(file=downloaded_video_path, name=video_file_name, time=start_time, bot=telethon_client, event=progress_message, msg="Uploading: " + video_file_name)
                     await telethon_client.send_file(event.chat_id, file=input_file, thumb=thumb_image_path, attributes=attributes, caption=video_file_name)
+                checkpoint_data[file_name] = True
+                save_checkpoint(checkpoint_file, checkpoint_data)
+            except FloodWaitError as e:
+                wait_time = e.seconds
+                print(f"FloodWaitError: Waiting for {wait_time} seconds.")
+                await asyncio.sleep(wait_time)
+                continue
             except Exception as e:
                 await event.respond(f"Failed to download {original_file_name}. Error: {str(e)}")
                 continue
@@ -114,5 +122,6 @@ async def handle_docs(event):
             os.remove(downloaded_video_path)
         if thumb_image_path and os.path.exists(thumb_image_path):
             os.remove(thumb_image_path)
-
+print("SUCCESSFULLY DEPLOYED")
 telethon_client.run_until_disconnected()
+    
