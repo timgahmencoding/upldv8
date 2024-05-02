@@ -2,7 +2,7 @@ import os
 import subprocess
 from telethon import TelegramClient, events
 from dotenv import load_dotenv
-import cv2
+import cv2, time
 from telethon.tl.types import DocumentAttributeVideo
 import asyncio
 import uvloop
