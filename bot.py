@@ -71,8 +71,13 @@ async def handle_docs(event):
         file_path = await event.download_media(file=download_directory)
         with open(file_path, 'r') as file:
             lines = file.readlines()
-        start_index = await event.respond("Enter the starting index for downloading files: ")
-        start_index = int(start_index.message.message)
+        start_index_message = await event.respond("Enter the starting index for downloading files:")
+        start_index_response = await telethon_client.wait_for(events.NewMessage(incoming=True, from_users=event.sender_id))
+        try:
+            start_index = int(start_index_response.text)
+        except ValueError:
+            await event.respond("Please enter a valid integer for the starting index.")
+            return
         for line in lines[start_index:]:
             original_file_name, file_url = line.strip().split(':', 1)
             file_name = sanitize_filename(original_file_name)
