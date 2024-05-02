@@ -75,7 +75,7 @@ async def handle_docs(event):
                 else:
                     video_file_name = f"{file_name}.mp4"
                     downloaded_video_path = f"{video_download_directory}/{video_file_name}"
-                    command_to_exec = ["yt-dlp", "--geo-bypass-country", "IN", "-N", "6", "--socket-timeout", "20", "--no-part", "--concurrent-fragments", "10", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "--add-metadata", "-o", downloaded_video_path, file_url]
+                    command_to_exec = ["yt-dlp", "--geo-bypass-country", "IN", "-N", "10", "--socket-timeout", "20", "--no-part", "--concurrent-fragments", "15", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "--add-metadata", "-o", downloaded_video_path, file_url]
                     try:
                         subprocess.run(command_to_exec, check=True)
                     except subprocess.CalledProcessError as e:
