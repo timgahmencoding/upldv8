@@ -438,8 +438,13 @@ async def progress(current, total, event, start, type_of_ps, file=None):
     diff = now - start
     if round(diff % 10.00) == 0 or current == total:
         percentage = current * 100 / total
-        speed = current / diff
-        time_to_completion = round((total - current) / speed) * 1000
+        speed = current / diff if diff != 0 else 0
+
+        if speed != 0:
+            time_to_completion = round((total - current) / speed)
+        else:
+            time_to_completion = 0
+
         progress_str = "**[{0}{1}]** `| {2}%`\n\n".format(
             "".join(["🔵" for i in range(math.floor(percentage / 5))]),
             "".join(["⚪" for i in range(20 - math.floor(percentage / 5))]),
@@ -451,7 +456,7 @@ async def progress(current, total, event, start, type_of_ps, file=None):
                 hbs(current),
                 hbs(total),
                 hbs(speed),
-                time_formatter(time_to_completion),
+                time_formatter(time_to_completion * 1000),
             )
         )
         if file:
@@ -460,7 +465,7 @@ async def progress(current, total, event, start, type_of_ps, file=None):
             )
         else:
             await event.edit("{}\n\n{}".format(type_of_ps, tmp))
-
+            
 
 async def fast_upload(file, name, time, bot, event, msg):
     with open(file, "rb") as f:
