@@ -1,11 +1,8 @@
 import os
-import subprocess
+import subprocess, cv2, asyncio, uvloop
 from telethon import TelegramClient, events
 from dotenv import load_dotenv
-import cv2
 from telethon.tl.types import DocumentAttributeVideo
-import asyncio
-import uvloop
 from parallel_file_transfer import upload_file
 
 def sanitize_filename(filename):
