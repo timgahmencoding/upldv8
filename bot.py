@@ -7,7 +7,7 @@ from telethon.tl.types import DocumentAttributeVideo
 import asyncio
 import uvloop
 import time
-from parallel_file_transfer import fast_upload, progress, time_formatter
+from parallel_file_transfer import fast_upload, progress, Timer
 
 def sanitize_filename(filename):
     return filename.replace('(', '').replace(')', '').replace(' ', '_')
@@ -50,9 +50,24 @@ async def handle_docs(event):
                     command_to_exec = ["yt-dlp", "-o", f"{pdf_download_directory}/{pdf_file_name}", file_url]
                     subprocess.run(command_to_exec, check=True)
                     downloaded_pdf_path = f"{pdf_download_directory}/{pdf_file_name}"
-                    start_time = time.time() * 1000
-                    input_file = await fast_upload(file=downloaded_pdf_path, name=pdf_file_name, time=start_time, bot=telethon_client, event=progress_message, msg="Uploading PDF")
-                    await telethon_client.send_file(event.chat_id, file=input_file, caption=pdf_file_name)
+                    start_time = time.time()
+                    timer = Timer(5)
+                    input_file = await fast_upload(
+                        file=downloaded_pdf_path,
+                        name=pdf_file_name,
+                        time=start_time,
+                        bot=telethon_client,
+                        event=event,
+                        msg=f"Uploading PDF: {pdf_file_name}"
+                    )
+                    await telethon_client.send_file(
+                        event.chat_id,
+                        file=input_file,
+                        caption=pdf_file_name,
+                        progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
+                            progress(d, t, progress_message, start_time, timer)
+                        )
+                    )
                 else:
                     video_file_name = f"{file_name}.mp4"
                     downloaded_video_path = f"{video_download_directory}/{video_file_name}"
@@ -72,11 +87,27 @@ async def handle_docs(event):
                         duration=duration,
                         supports_streaming=True
                     )]
-                   # await progress_message.edit(f"Uploading {video_file_name}...")
-                    start_time = time.time() * 1000
-                    input_file = await fast_upload(file=downloaded_video_path, name=video_file_name, time=start_time, bot=telethon_client, event=progress_message, msg="Uploading: {file_name}")
-                    await telethon_client.send_file(event.chat_id, file=input_file, thumb=thumb_image_path, attributes=attributes, caption=video_file_name)
-                    if lines[-1] == line:  # Check if it's the last file
+                    start_time = time.time()
+                    timer = Timer(5)
+                    input_file = await fast_upload(
+                        file=downloaded_video_path,
+                        name=video_file_name,
+                        time=start_time,
+                        bot=telethon_client,
+                        event=event,
+                        msg=f"Uploading Video: {video_file_name}"
+                    )
+                    await telethon_client.send_file(
+                        event.chat_id,
+                        file=input_file,
+                        thumb=thumb_image_path,
+                        attributes=attributes,
+                        caption=video_file_name,
+                        progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
+                            progress(d, t, progress_message, start_time, timer)
+                        )
+                    )
+                    if lines[-1] == line:
                         await progress_message.edit("All files are uploaded successfully.")           
             except Exception as e:
                 await event.respond(f"Failed to download {original_file_name}. Error: {str(e)}")
@@ -93,4 +124,3 @@ async def handle_docs(event):
 print("Bot successfully deployed.")
 
 telethon_client.run_until_disconnected()
-    
