@@ -434,41 +434,37 @@ def hbs(size):
     return str(round(size, 2)) + " " + dict_power_n[raised_to_pow] + "B"
 
 
-async def progress(current, total, event, start, type_of_ps, file=None):
+async def progress(current, total, event, start, type_of_ps, file_name=None):
     now = time.time()
     diff = now - start
     if diff <= 0:
         diff = 1  # Prevent division by zero and negative time difference
-    if current == 0:
-        speed = 0
-        time_to_completion = float('inf')  # Infinite time if no progress
-    else:
-        speed = current / diff  # Calculate the speed correctly
-        time_to_completion = round((total - current) / speed) * 1000
+    speed = current / diff  # Calculate the speed correctly
+    time_to_completion = round((total - current) / speed) * 1000 if current != 0 else float('inf')
 
     percentage = current * 100 / total
-    progress_str = "**[{0}{1}]** `| {2}%`\n\n".format(
+    progress_str = "[{0}{1}] | {2}%\n".format(
         "".join(["💠" for i in range(math.floor(percentage / 5))]),
-        "".join(["▫️" for i in range(20 - math.floor(percentage / 5))]),
+        "".join(["⬜️" for i in range(20 - math.floor(percentage / 5))]),
         round(percentage, 2),
     )
     tmp = (
         progress_str
-        + "📦 GROSS: {0} of {1}\n\n🚀 Speed: {2}/s\n\n⏱️ ETA: {3}\n\n".format(
+        + "📦 GROSS: {0} of {1}\n🚀 Speed: {2}/s\n⏱️ ETA: {3}\n".format(
             hbs(current),
             hbs(total),
-            hbs(speed),  # Use the correctly calculated speed
+            hbs(speed),
             time_formatter(time_to_completion),
         )
     )
     # Update the progress bar every 10 seconds to avoid floodwaits on Telegram
     if (now - start) % 10 < 0.5 or current == total:
-        if file:
+        if file_name:
             await event.edit(
-                "{}\n\n`File Name: {}\n\n{}".format(type_of_ps, file, tmp)
+                "{}\nFile Name: {}\n{}".format(type_of_ps, file_name, tmp)
             )
         else:
-            await event.edit("{}\n\n{}".format(type_of_ps, tmp))
+            await event.edit("{}\n{}".format(type_of_ps, tmp))
             
 
 async def fast_upload(file, name, time, bot, event, msg):
