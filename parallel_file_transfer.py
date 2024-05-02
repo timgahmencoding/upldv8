@@ -435,32 +435,6 @@ def hbs(size):
     return str(round(size, 2)) + " " + dict_power_n[raised_to_pow] + "B"
 
 
-async def progress(current, total, event, start, type_of_ps, file=None):
-    now = time.time()
-    diff = now - start
-    if round(diff % 10.00) == 0 or current == total:
-        percentage = current * 100 / total
-        time_to_completion = round((total - current) / (current / diff)) * 1000 if current != 0 else 0
-        progress_str = "**[{0}{1}]** `| {2}%`\n\n".format(
-            "".join(["▬" for i in range(math.floor(percentage / 5))]),
-            "".join(["-" for i in range(10 - math.floor(percentage / 5))]),
-            round(percentage, 2),
-        )
-        tmp = (
-            progress_str
-            + "📦 GROSS: {0} of {1}\n\n⏱️ ETA: {2}\n\n".format(
-                hbs(current),
-                hbs(total),
-                time_formatter(time_to_completion),
-            )
-        )
-        if file:
-            await event.edit(
-                "{}\n\n`File Name: {}\n\n{}".format(type_of_ps, file, tmp)
-            )
-        else:
-            await event.edit("{}\n\n{}".format(type_of_ps, tmp))
-
 
 #Why these methods? : Using progress of telethon makes upload/download slow due to callbacks
 #these method allows to upload/download in fastest way with progress bars.
@@ -483,6 +457,42 @@ async def fast_download(filename, file, bot, event, time, msg):
             ),
         )
     return result
+
+
+async def progress(current, total, event, start, type_of_ps, file=None):
+    now = time.time()
+    diff = now - start
+    if round(diff % 10.00) == 0 or current == total:
+        percentage = current * 100 / total
+        time_to_completion = round((total - current) / (current / diff)) * 1000 if current != 0 else 0
+
+        progress_str = "**[{0}{1}]** `| {2}%`\n\n".format(
+            "".join(["▬" for i in range(math.floor(percentage / 5))]),
+            "".join(["-" for i in range(20 - math.floor(percentage / 5))]),
+            round(percentage, 2),
+        )
+
+        tmp = (
+            progress_str
+            + "📦 GROSS: {0} of {1}\n\n⏱️ ETA: {2}\n\n".format(
+                hbs(current),
+                hbs(total),
+                time_formatter(time_to_completion),
+            )
+        )
+
+        if file:
+            await event.edit(
+                "{}\n\n`File Name: {}\n\n{}".format(type_of_ps, file, tmp)
+            )
+        else:
+            await event.edit("{}\n\n{}".format(type_of_ps, tmp))
+
+# Initialize these global variables before starting the upload
+last_update_time = time.time()
+last_update_bytes = 0
+
+# ... [rest of your code] ...
 
 
 async def fast_upload(file, name, time, bot, event, msg):
