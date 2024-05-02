@@ -473,7 +473,7 @@ async def progress(current, total, event, start, type_of_ps, file=None):
     )
     tmp = (
         progress_str
-        + "📦 Progress: {0} of {1}\n\n".format(
+        + "⚡ 𝙋𝙧𝙤𝙜𝙧𝙚𝙨𝙨: {0} of {1}\n\n".format(
             hbs(current),
             hbs(total),
         )
