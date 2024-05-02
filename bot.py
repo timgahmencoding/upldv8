@@ -56,7 +56,7 @@ async def handle_docs(event):
                 else:
                     video_file_name = f"{file_name}.mp4"
                     downloaded_video_path = f"{video_download_directory}/{video_file_name}"
-                    command_to_exec = ["yt-dlp", "--geo-bypass-country", "IN", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "--external-downloader", "ffmpeg", "--external-downloader-args", "-hide_banner -loglevel quiet -map 0 -c:v libx265 -crf 22 -c:a copy -bsf:a aac_adtstoasc -nostdin", "--add-metadata", "-o", downloaded_video_path, file_url]
+                    command_to_exec = ["yt-dlp", "--geo-bypass-country", "IN", "-N", "5", "--socket-timeout", "20", "--no-part", "--concurrent-fragments", "4", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "--add-metadata", "-o", downloaded_video_path, file_url]
                     subprocess.run(command_to_exec, check=True)
                     thumb_image_path = f"{thumbnail_download_directory}/{file_name}.jpg"
                     thumb_cmd = f'ffmpeg -hide_banner -loglevel quiet -i {downloaded_video_path} -ss 00:00:01 -vframes 1 -update 1 {thumb_image_path}'
