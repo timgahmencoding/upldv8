@@ -74,13 +74,15 @@ async def handle_docs(event):
                     )]
                    # await progress_message.edit(f"Uploading {video_file_name}...")
                     start_time = time.time() * 1000
-                    input_file = await fast_upload(file=downloaded_video_path, name=video_file_name, time=start_time, bot=telethon_client, event=progress_message, msg="Uploading: {video_file_name}")
+                    input_file = await fast_upload(file=downloaded_video_path, name=video_file_name, time=start_time, bot=telethon_client, event=progress_message, msg="Uploading: {file_name}")
                     await telethon_client.send_file(event.chat_id, file=input_file, thumb=thumb_image_path, attributes=attributes, caption=video_file_name)
+                    if lines[-1] == line:  # Check if it's the last file
+                        await progress_message.edit("All files are uploaded successfully.")           
             except Exception as e:
                 await event.respond(f"Failed to download {original_file_name}. Error: {str(e)}")
                 continue
-                await progress_message.edit("All files are uploaded successfully.")
-        os.remove(file_path)
+                
+            os.remove(file_path)
         if downloaded_pdf_path and os.path.exists(downloaded_pdf_path):
             os.remove(downloaded_pdf_path)
         if downloaded_video_path and os.path.exists(downloaded_video_path):
