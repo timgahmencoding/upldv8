@@ -1,9 +1,12 @@
 import os
-import subprocess, cv2, asyncio, uvloop
+import subprocess
 from telethon import TelegramClient, events
 from dotenv import load_dotenv
+import cv2
 from telethon.tl.types import DocumentAttributeVideo
-from parallel_file_transfer import upload_file
+import asyncio
+import uvloop
+from parallel_file_transfer import fast_upload as upload_file, progress, time_formatter
 
 def sanitize_filename(filename):
     return filename.replace('(', '').replace(')', '').replace(' ', '_')
@@ -47,8 +50,9 @@ async def handle_docs(event):
                     subprocess.run(command_to_exec, check=True)
                     downloaded_pdf_path = f"{pdf_download_directory}/{pdf_file_name}"
                     await progress_message.edit(f"Uploading {pdf_file_name}...")
+                    start_time = time.time() * 1000
                     with open(downloaded_pdf_path, 'rb') as file:
-                        input_file = await upload_file(telethon_client, file, pdf_file_name)
+                        input_file = await upload_file(telethon_client, file, pdf_file_name, lambda d, t: progress(d, t, progress_message, start_time, "Uploading PDF"))
                         await telethon_client.send_file(event.chat_id, file=input_file, caption=pdf_file_name)
                 else:
                     video_file_name = f"{file_name}.mp4"
@@ -70,8 +74,9 @@ async def handle_docs(event):
                         supports_streaming=True
                     )]
                     await progress_message.edit(f"Uploading {video_file_name}...")
+                    start_time = time.time() * 1000
                     with open(downloaded_video_path, 'rb') as file:
-                        input_file = await upload_file(telethon_client, file, video_file_name)
+                        input_file = await upload_file(telethon_client, file, video_file_name, lambda d, t: progress(d, t, progress_message, start_time, "Uploading Video"))
                         await telethon_client.send_file(event.chat_id, file=input_file, thumb=thumb_image_path, attributes=attributes, caption=video_file_name)
             except Exception as e:
                 await event.respond(f"Failed to download {original_file_name}. Error: {str(e)}")
