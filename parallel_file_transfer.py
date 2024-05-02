@@ -447,8 +447,8 @@ async def progress(current, total, event, start, type_of_ps, file=None):
             time_to_completion = 0
 
         progress_str = "[{0}{1}] | {2}%\n\n".format(
-            "".join(["▬" for _ in range(math.floor(percentage / 2))]),
-            "".join(["-" for _ in range(50 - math.floor(percentage / 2))]),
+            "".join(["▬" for _ in range(math.floor(percentage / 4))]),
+            "".join(["-" for _ in range(25 - math.floor(percentage / 4))]),
             round(percentage, 2),
         )
         tmp = (
@@ -466,7 +466,7 @@ async def progress(current, total, event, start, type_of_ps, file=None):
             )
         else:
             await event.edit("{}\n\n{}".format(type_of_ps, tmp))
-
+            
 
 async def fast_upload(file, name, time, bot, event, msg):
     with open(file, "rb") as f:
