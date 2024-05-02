@@ -433,6 +433,7 @@ def hbs(size):
         raised_to_pow += 1
     return str(round(size, 2)) + " " + dict_power_n[raised_to_pow] + "B"
 
+
 async def progress(current, total, event, start, type_of_ps, file=None):
     now = time.time()
     diff = now - start
@@ -445,9 +446,9 @@ async def progress(current, total, event, start, type_of_ps, file=None):
         else:
             time_to_completion = 0
 
-        progress_str = "**[{0}{1}]** `| {2}%`\n\n".format(
-            "".join(["▬" for i in range(math.floor(percentage / 5))]),
-            "".join(["-" for i in range(30 - math.floor(percentage / 5))]),
+        progress_str = "[{0}{1}] | {2}%\n\n".format(
+            "".join(["▬" for _ in range(math.floor(percentage / 2))]),
+            "".join(["-" for _ in range(50 - math.floor(percentage / 2))]),
             round(percentage, 2),
         )
         tmp = (
@@ -456,7 +457,7 @@ async def progress(current, total, event, start, type_of_ps, file=None):
                 hbs(current),
                 hbs(total),
                 hbs(speed),
-                time_formatter(time_to_completion * 1000),
+                time_formatter(time_to_completion),
             )
         )
         if file:
@@ -465,7 +466,7 @@ async def progress(current, total, event, start, type_of_ps, file=None):
             )
         else:
             await event.edit("{}\n\n{}".format(type_of_ps, tmp))
-            
+
 
 async def fast_upload(file, name, time, bot, event, msg):
     with open(file, "rb") as f:
