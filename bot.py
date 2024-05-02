@@ -54,8 +54,10 @@ async def handle_docs(event):
         file_path = await event.download_media(file=download_directory)
         with open(file_path, 'r') as file:
             lines = file.readlines()
-        start_index = await event.respond("Enter the index from where to start downloading:")
-        start_index = int(start_index.message.text) if start_index.message.text.isdigit() else 0
+        start_index_message = await event.respond("Enter the index from where to start downloading:")
+        response = await telethon_client.wait_for(events.NewMessage(incoming=True, from_users=event.sender_id))
+        start_index_text = response.text
+        start_index = int(start_index_text) if start_index_text.isdigit() else 0
         for index, line in enumerate(lines[start_index:], start=start_index):
             if cancel_event.is_set():
                 cancel_event.clear()
@@ -75,7 +77,7 @@ async def handle_docs(event):
                 else:
                     video_file_name = f"{file_name}.mp4"
                     downloaded_video_path = f"{video_download_directory}/{video_file_name}"
-                    command_to_exec = ["yt-dlp", "--geo-bypass-country", "IN", "-N", "10", "--socket-timeout", "20", "--no-part", "--concurrent-fragments", "15", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "--add-metadata", "-o", downloaded_video_path, file_url]
+                    command_to_exec = ["yt-dlp", "--geo-bypass-country", "IN", "-N", "6", "--socket-timeout", "20", "--no-part", "--concurrent-fragments", "10", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "--add-metadata", "-o", downloaded_video_path, file_url]
                     try:
                         subprocess.run(command_to_exec, check=True)
                     except subprocess.CalledProcessError as e:
@@ -112,6 +114,4 @@ async def handle_docs(event):
         if thumb_image_path and os.path.exists(thumb_image_path):
             os.remove(thumb_image_path)
 
-print("Bot successfully deployed.")
 telethon_client.run_until_disconnected()
-    
