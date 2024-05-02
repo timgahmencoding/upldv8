@@ -88,7 +88,7 @@ async def handle_docs(event):
                     downloaded_video_path = f"{video_download_directory}/{video_file_name}"
                     if os.path.exists(downloaded_video_path):
                         os.remove(downloaded_video_path)
-                    command_to_exec = ["yt-dlp", "--geo-bypass-country", "IN", "-N", "10", "--socket-timeout", "20", "--no-part", "--concurrent-fragments", "10", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "--add-metadata", "-o", downloaded_video_path, file_url]
+                    command_to_exec = ["yt-dlp", "--geo-bypass-country", "IN", "-N", "10", "--socket-timeout", "20", "--no-part", "--concurrent-fragments", "10", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "-o", downloaded_video_path, file_url]
                     subprocess.run(command_to_exec, check=True)
                     thumb_image_path = f"{thumbnail_download_directory}/{file_name}.jpg"
                     if os.path.exists(thumb_image_path):
