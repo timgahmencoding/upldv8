@@ -1,33 +1,21 @@
+# Importing necessary libraries
 import os
 import subprocess
-from telethon import TelegramClient, events
-from dotenv import load_dotenv
 import cv2
-from telethon.tl.types import DocumentAttributeVideo
 import asyncio
 import uvloop
 import time
-from parallel_file_transfer import fast_upload, progress, time_formatter
 import unicodedata
 import re
+from telethon import TelegramClient, events
+from telethon.tl.types import DocumentAttributeVideo
+from dotenv import load_dotenv
+from parallel_file_transfer import fast_upload, progress, time_formatter
 
-def sanitize_filename(filename):
-    # Normalize Unicode characters to their closest ASCII representation
-    filename = unicodedata.normalize('NFKD', filename).encode('ascii', 'ignore').decode('ascii')
-    # Remove any characters that are not safe for filenames
-    filename = re.sub(r'[^\w\s-]', '', filename).strip()
-    # Replace spaces or repeated dashes with a single dash
-    filename = re.sub(r'[-\s]+', '-', filename)
-    # Ensure the filename does not start or end with a dash
-    filename = filename.strip('-')
-    return filename
-'''    
-def sanitize_filename(filename):
-    return filename.replace('(', '').replace(')', '').replace(' ', '_')
-'''
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 load_dotenv()
+
 download_directory = "./downloads"
 pdf_download_directory = f"{download_directory}/pdfs"
 video_download_directory = f"{download_directory}/video"
@@ -39,6 +27,18 @@ os.makedirs(thumbnail_download_directory, exist_ok=True)
 telethon_client = TelegramClient('BULK-UPLOAD-BOT', int(os.getenv("API_ID")), os.getenv("API_HASH"))
 telethon_client.start(bot_token=os.getenv("BOT_TOKEN"))
 
+
+def sanitize_filename(filename):
+    # Normalize Unicode characters to their closest ASCII representation
+    filename = unicodedata.normalize('NFKD', filename).encode('ascii', 'ignore').decode('ascii')
+    # Remove any characters that are not safe for filenames
+    filename = re.sub(r'[^\w\s-]', '', filename).strip()
+    # Replace spaces or repeated dashes with a single dash
+    filename = re.sub(r'[-\s]+', '-', filename)
+    # Ensure the filename does not start or end with a dash
+    filename = filename.strip('-')
+    return filename
+    
 @telethon_client.on(events.NewMessage(pattern='/start'))
 async def start(event):
     await event.respond("Please send the .txt file with the video and PDF URLs.")
