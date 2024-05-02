@@ -482,7 +482,7 @@ class Timer:
         return False
 
 timer = Timer()
-async def progress_bar(current,total,reply,start):
+async def progress(current,total,reply,start):
       if timer.can_send():
         now = time.time()
         diff = now - start
