@@ -4,8 +4,6 @@ import logging
 import math
 import time
 import os
-from datetime import datetime, timedelta
-from pyrogram.errors import FloodWait
 from collections import defaultdict
 from typing import (
     AsyncGenerator,
@@ -404,70 +402,6 @@ async def upload_file(
     )[0]
 
 
-async def fast_upload(file, name, time, bot, event, msg):
-    with open(file, "rb") as f:
-        result = await upload_file(
-            client=bot,
-            file=f,
-            filename=name,
-            progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
-                progress(
-                    d,
-                    t,
-                    event,
-                    time,
-                    msg,
-                ),
-            ),
-        )
-    return result
-
-
-
-def hrb(value, digits= 2, delim= "", postfix=""):
-    """Return a human-readable file size.
-    """
-    if value is None:
-        return None
-    chosen_unit = "B"
-    for unit in ("KiB", "MiB", "GiB", "TiB"):
-        if value > 1000:
-            value /= 1024
-            chosen_unit = unit
-        else:
-            break
-    return f"{value:.{digits}f}" + delim + chosen_unit + postfix
-
-def hrt(seconds, precision = 0):
-    """Return a human-readable time delta as a string.
-    """
-    pieces = []
-    value = timedelta(seconds=seconds)
-    
-
-    if value.days:
-        pieces.append(f"{value.days}d")
-
-    seconds = value.seconds
-
-    if seconds >= 3600:
-        hours = int(seconds / 3600)
-        pieces.append(f"{hours}h")
-        seconds -= hours * 3600
-
-    if seconds >= 60:
-        minutes = int(seconds / 60)
-        pieces.append(f"{minutes}m")
-        seconds -= minutes * 60
-
-    if seconds > 0 or not pieces:
-        pieces.append(f"{seconds}s")
-
-    if not precision:
-        return "".join(pieces)
-
-    return "".join(pieces[:precision])
-
 def time_formatter(milliseconds: int) -> str:
     """Inputs time in milliseconds, to get beautified time,
     as string"""
@@ -488,51 +422,67 @@ def time_formatter(milliseconds: int) -> str:
     else:
         return tmp
 
+def hbs(size):
+    if not size:
+        return ""
+    power = 2 ** 10
+    raised_to_pow = 0
+    dict_power_n = {0: "B", 1: "K", 2: "M", 3: "G", 4: "T", 5: "P"}
+    while size > power:
+        size /= power
+        raised_to_pow += 1
+    return str(round(size, 2)) + " " + dict_power_n[raised_to_pow] + "B"
 
 
-class Timer:
-    def __init__(self, time_between=5):
-        self.start_time = time.time()
-        self.time_between = time_between
+async def progress(current, total, event, start, type_of_ps, file_name=None):
+    now = time.time()
+    diff = now - start
+    if diff <= 0:
+        diff = 1  # Prevent division by zero and negative time difference
+    speed = current / diff  # Calculate the speed correctly
+    time_to_completion = round((total - current) / speed) * 1000 if current != 0 else float('inf')
 
-    def can_send(self):
-        if time.time() > (self.start_time + self.time_between):
-            self.start_time = time.time()
-            return True
-        return False
-
-timer = Timer()
-async def progress(current,total,reply,start):
-      if timer.can_send():
-        now = time.time()
-        diff = now - start
-        if diff < 1:
-            return
+    percentage = current * 100 / total
+    progress_str = "[{0}{1}] | {2}%\n".format(
+        "".join(["🔵" for i in range(math.floor(percentage / 5))]),
+        "".join(["⚪" for i in range(20 - math.floor(percentage / 5))]),
+        round(percentage, 2),
+    )
+    tmp = (
+        progress_str
+     #   + "📦 GROSS: {0} of {1}\n🚀 Speed: {2}/s\n⏱️ ETA: {3}\n".format(
+        + "📦 GROSS: {0} of {1}\n⏱️ ETA: {3}\n".format(
+         
+            hbs(current),
+            hbs(total),
+        #    hbs(speed),
+            time_formatter(time_to_completion),
+        )
+    )
+    # Update the progress bar every 10 seconds to avoid floodwaits on Telegram
+    if (now - start) % 10 < 0.5 or current == total:
+        if file_name:
+            await event.edit(
+                "{}\nFile Name: {}\n{}".format(type_of_ps, file_name, tmp)
+            )
         else:
-            perc = f"{current * 100 / total:.1f}%"
-            elapsed_time = round(diff)
-            speed = current / elapsed_time
-            sp=str(hrb(speed))+"ps"
-            tot=hrb(total)
-            cur=hrb(current)
-            try:
-                await reply.edit(f'`┌ 𝙋𝙧𝙤𝙜𝙧𝙚𝙨𝙨 📈 -【 {perc} 】\n├ 𝙎𝙥𝙚𝙚𝙙 🧲 -【 {sp} 】\n└ 𝙎𝙞𝙯𝙚 📂 -【 {cur} / {tot} 】`')
-               
-            except FloodWait as e:
-                time.sleep(e.x)
+            await event.edit("{}\n{}".format(type_of_ps, tmp))
+            
 
-async def p_b(current, total, reply, start, timer):
-    if timer.can_send():
-        now = time.time()
-        diff = now - start
-        if diff >= 1:
-            perc = f"{current * 100 / total:.1f}%"
-            elapsed_time = round(diff)
-            speed = current / elapsed_time
-            sp = str(hrb(speed)) + "ps"
-            tot = hrb(total)
-            cur = hrb(current)
-            try:
-                await reply.edit(f'`Uploading: {perc} | {cur}/{tot} | Speed: {sp}`')
-            except Exception as e:
-                print(f"Failed to update progress: {str(e)}")
+async def fast_upload(file, name, time, bot, event, msg):
+    with open(file, "rb") as f:
+        result = await upload_file(
+            client=bot,
+            file=f,
+            filename=name,
+            progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
+                progress(
+                    d,
+                    t,
+                    event,
+                    time,
+                    msg,
+                ),
+            ),
+        )
+    return result
