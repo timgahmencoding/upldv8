@@ -69,25 +69,30 @@ async def handle_docs(event):
             file_name = sanitize_filename(original_file_name)
 
             if checkpoint_data.get(file_name):
-                print(f"{file_name} has already been downloaded. Skipping...")
                 continue
 
             try:
                 await progress_message.edit(f"Downloading {original_file_name}...")
                 if file_url.endswith('.pdf'):
                     pdf_file_name = f"{file_name}.pdf"
-                    command_to_exec = ["yt-dlp", "-o", f"{pdf_download_directory}/{pdf_file_name}", file_url]
-                    subprocess.run(command_to_exec, check=True)
                     downloaded_pdf_path = f"{pdf_download_directory}/{pdf_file_name}"
+                    if os.path.exists(downloaded_pdf_path):
+                        os.remove(downloaded_pdf_path)
+                    command_to_exec = ["yt-dlp", "-o", downloaded_pdf_path, file_url]
+                    subprocess.run(command_to_exec, check=True)
                     start_time = time.time() * 1000
                     input_file = await fast_upload(file=downloaded_pdf_path, name=pdf_file_name, time=start_time, bot=telethon_client, event=progress_message, msg="Uploading PDF")
                     await telethon_client.send_file(event.chat_id, file=input_file, caption=pdf_file_name)
                 else:
                     video_file_name = f"{file_name}.mp4"
                     downloaded_video_path = f"{video_download_directory}/{video_file_name}"
+                    if os.path.exists(downloaded_video_path):
+                        os.remove(downloaded_video_path)
                     command_to_exec = ["yt-dlp", "--geo-bypass-country", "IN", "-N", "6", "--socket-timeout", "20", "--no-part", "--concurrent-fragments", "10", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "--add-metadata", "-o", downloaded_video_path, file_url]
                     subprocess.run(command_to_exec, check=True)
                     thumb_image_path = f"{thumbnail_download_directory}/{file_name}.jpg"
+                    if os.path.exists(thumb_image_path):
+                        os.remove(thumb_image_path)
                     thum_command_to_exec = ['ffmpeg', '-hide_banner', '-loglevel', 'quiet', '-i', downloaded_video_path, '-vf', 'thumbnail,scale=1280:-1', '-frames:v', '1', thumb_image_path]
                     subprocess.run(thum_command_to_exec, check=True)
                     vid = cv2.VideoCapture(downloaded_video_path)
@@ -101,14 +106,23 @@ async def handle_docs(event):
                         duration=duration,
                         supports_streaming=True
                     )]
-                    start_time = time.time() * 1000
-                    input_file = await fast_upload(file=downloaded_video_path, name=video_file_name, time=start_time, bot=telethon_client, event=progress_message, msg="Uploading: " + video_file_name)
-                    await telethon_client.send_file(event.chat_id, file=input_file, thumb=thumb_image_path, attributes=attributes, caption=video_file_name)
+                    upload_attempts = 0
+                    while upload_attempts < 3:
+                        try:
+                            start_time = time.time() * 1000
+                            input_file = await fast_upload(file=downloaded_video_path, name=video_file_name, time=start_time, bot=telethon_client, event=progress_message, msg="Uploading: " + video_file_name)
+                            await telethon_client.send_file(event.chat_id, file=input_file, thumb=thumb_image_path, attributes=attributes, caption=video_file_name)
+                            break
+                        except Exception as e:
+                            upload_attempts += 1
+                            if upload_attempts >= 3:
+                                await event.respond(f"Failed to upload {video_file_name} after 3 attempts.")
+                                break
+                            await asyncio.sleep(2)
                 checkpoint_data[file_name] = True
                 save_checkpoint(checkpoint_file, checkpoint_data)
             except FloodWaitError as e:
                 wait_time = e.seconds
-                print(f"FloodWaitError: Waiting for {wait_time} seconds.")
                 await asyncio.sleep(wait_time)
                 continue
             except Exception as e:
@@ -124,4 +138,4 @@ async def handle_docs(event):
             os.remove(thumb_image_path)
 print("SUCCESSFULLY DEPLOYED")
 telethon_client.run_until_disconnected()
-    
+            
