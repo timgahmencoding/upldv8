@@ -521,3 +521,18 @@ async def progress(current,total,reply,start):
             except FloodWait as e:
                 time.sleep(e.x)
 
+async def p_b(current, total, reply, start, timer):
+    if timer.can_send():
+        now = time.time()
+        diff = now - start
+        if diff >= 1:
+            perc = f"{current * 100 / total:.1f}%"
+            elapsed_time = round(diff)
+            speed = current / elapsed_time
+            sp = str(hrb(speed)) + "ps"
+            tot = hrb(total)
+            cur = hrb(current)
+            try:
+                await reply.edit(f'`Uploading: {perc} | {cur}/{tot} | Speed: {sp}`')
+            except Exception as e:
+                print(f"Failed to update progress: {str(e)}")
