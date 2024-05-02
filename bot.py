@@ -7,7 +7,7 @@ from telethon.tl.types import DocumentAttributeVideo
 import asyncio
 import uvloop
 import time
-from parallel_file_transfer import fast_upload, progress, Timer
+from parallel_file_transfer import fast_upload, progress, Timer, p_b
 
 def sanitize_filename(filename):
     return filename.replace('(', '').replace(')', '').replace(' ', '_')
@@ -103,9 +103,7 @@ async def handle_docs(event):
                         thumb=thumb_image_path,
                         attributes=attributes,
                         caption=video_file_name,
-                        progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
-                            progress(d, t, progress_message, start_time, timer)
-                        )
+                        progress_callback=progress(d, t, progress_message, start_time, timer)
                     )
                     if lines[-1] == line:
                         await progress_message.edit("All files are uploaded successfully.")           
