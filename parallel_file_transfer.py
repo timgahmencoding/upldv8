@@ -1,5 +1,5 @@
 # copied from https://github.com/tulir/mautrix-telegram/blob/master/mautrix_telegram/util/parallel_file_transfer.py
-# added further improvements
+# added infinite improvements
 
 import asyncio
 import hashlib
@@ -451,8 +451,8 @@ async def progress(current, total, event, start, type_of_ps, file=None):
 
     percentage = current * 100 / total
     progress_str = "**[{0}{1}]** `| {2}%`\n\n".format(
-        "".join(["🟩" for i in range(math.floor(percentage / 5))]),
-        "".join(["⬜️" for i in range(20 - math.floor(percentage / 5))]),
+        "".join(["💠" for i in range(math.floor(percentage / 5))]),
+        "".join(["🔘" for i in range(20 - math.floor(percentage / 5))]),
         round(percentage, 2),
     )
     tmp = (
