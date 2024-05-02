@@ -72,9 +72,9 @@ async def handle_docs(event):
                         duration=duration,
                         supports_streaming=True
                     )]
-                    await progress_message.edit(f"Uploading {video_file_name}...")
+                   # await progress_message.edit(f"Uploading {video_file_name}...")
                     start_time = time.time() * 1000
-                    input_file = await fast_upload(file=downloaded_video_path, name=video_file_name, time=start_time, bot=telethon_client, event=progress_message, msg="Uploading Video")
+                    input_file = await fast_upload(file=downloaded_video_path, name=video_file_name, time=start_time, bot=telethon_client, event=progress_message, msg="Uploading: {video_file_name}")
                     await telethon_client.send_file(event.chat_id, file=input_file, thumb=thumb_image_path, attributes=attributes, caption=video_file_name)
             except Exception as e:
                 await event.respond(f"Failed to download {original_file_name}. Error: {str(e)}")
