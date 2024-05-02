@@ -79,6 +79,7 @@ async def handle_docs(event):
             except Exception as e:
                 await event.respond(f"Failed to download {original_file_name}. Error: {str(e)}")
                 continue
+        await progress_message.edit("All files uploaded successfully.")
         os.remove(file_path)
         if downloaded_pdf_path and os.path.exists(downloaded_pdf_path):
             os.remove(downloaded_pdf_path)
