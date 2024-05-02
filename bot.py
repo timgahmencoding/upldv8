@@ -2,10 +2,11 @@ import os
 import subprocess
 from telethon import TelegramClient, events
 from dotenv import load_dotenv
-import cv2, time
+import cv2
 from telethon.tl.types import DocumentAttributeVideo
 import asyncio
 import uvloop
+import time
 from parallel_file_transfer import fast_upload, progress, time_formatter
 
 def sanitize_filename(filename):
@@ -49,11 +50,9 @@ async def handle_docs(event):
                     command_to_exec = ["yt-dlp", "-o", f"{pdf_download_directory}/{pdf_file_name}", file_url]
                     subprocess.run(command_to_exec, check=True)
                     downloaded_pdf_path = f"{pdf_download_directory}/{pdf_file_name}"
-                 #   await progress_message.edit(f"Uploading {pdf_file_name}...")
                     start_time = time.time() * 1000
-                    with open(downloaded_pdf_path, 'rb') as file:
-                        input_file = await fast_upload(file=file, name=pdf_file_name, time=start_time, bot=telethon_client, event=progress_message, msg="Uploading PDF");
-                        await telethon_client.send_file(event.chat_id, file=input_file, caption=pdf_file_name)
+                    input_file = await fast_upload(file=downloaded_pdf_path, name=pdf_file_name, time=start_time, bot=telethon_client, event=progress_message, msg="Uploading PDF")
+                    await telethon_client.send_file(event.chat_id, file=input_file, caption=pdf_file_name)
                 else:
                     video_file_name = f"{file_name}.mp4"
                     downloaded_video_path = f"{video_download_directory}/{video_file_name}"
@@ -75,9 +74,8 @@ async def handle_docs(event):
                     )]
                     await progress_message.edit(f"Uploading {video_file_name}...")
                     start_time = time.time() * 1000
-                    with open(downloaded_video_path, 'rb') as file:
-                        input_file = await fast_upload(file=file, name=video_file_name, time=start_time, bot=telethon_client, event=progress_message, msg="Uploading Video")
-                        await telethon_client.send_file(event.chat_id, file=input_file, thumb=thumb_image_path, attributes=attributes, caption=video_file_name)                        
+                    input_file = await fast_upload(file=downloaded_video_path, name=video_file_name, time=start_time, bot=telethon_client, event=progress_message, msg="Uploading Video")
+                    await telethon_client.send_file(event.chat_id, file=input_file, thumb=thumb_image_path, attributes=attributes, caption=video_file_name)
             except Exception as e:
                 await event.respond(f"Failed to download {original_file_name}. Error: {str(e)}")
                 continue
@@ -92,3 +90,4 @@ async def handle_docs(event):
 print("Bot successfully deployed.")
 
 telethon_client.run_until_disconnected()
+    
