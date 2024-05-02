@@ -59,8 +59,8 @@ async def handle_docs(event):
                     command_to_exec = ["yt-dlp", "--geo-bypass-country", "IN", "-N", "6", "--socket-timeout", "20", "--no-part", "--concurrent-fragments", "10", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "--add-metadata", "-o", downloaded_video_path, file_url]
                     subprocess.run(command_to_exec, check=True)
                     thumb_image_path = f"{thumbnail_download_directory}/{file_name}.jpg"
-                    thumb_cmd = f'ffmpeg -hide_banner -loglevel quiet -i {downloaded_video_path} -ss 00:00:01 -vframes 1 -update 1 {thumb_image_path}'
-                    os.system(thumb_cmd)
+                    thum_command_to_exec = ['ffmpeg', '-hide_banner', '-loglevel', 'quiet', '-i', downloaded_video_path, '-ss', '00:00:01', '-vframes', '1', '-update', '1', thumb_image_path]
+                    subprocess.run(thum_command_to_exec, check=True)
                     vid = cv2.VideoCapture(downloaded_video_path)
                     width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
                     height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
