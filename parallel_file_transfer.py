@@ -462,37 +462,34 @@ async def fast_download(filename, file, bot, event, time, msg):
 async def progress(current, total, event, start, type_of_ps, file=None):
     now = time.time()
     diff = now - start
-    if round(diff % 10.00) == 0 or current == total:
-        percentage = current * 100 / total
-        time_to_completion = round((total - current) / (current / diff)) * 1000 if current != 0 else 0
+    if diff <= 0:
+        diff = 1  # Prevent division by zero and negative time difference
 
-        progress_str = "**[{0}{1}]** `| {2}%`\n\n".format(
-            "".join(["▬" for i in range(math.floor(percentage / 5))]),
-            "".join(["-" for i in range(20 - math.floor(percentage / 5))]),
-            round(percentage, 2),
+    percentage = current * 100 / total
+    time_to_completion = round((total - current) / (current / diff)) * 1000 if current != 0 else float('inf')
+
+    progress_str = "**[{0}{1}]** `| {2}%`\n\n".format(
+        "".join(["▬" for i in range(math.floor(percentage / 5))]),
+        "".join(["—" for i in range(20 - math.floor(percentage / 5))]),
+        round(percentage, 2),
+    )
+    tmp = (
+        progress_str
+        + "📦 GROSS: {0} of {1}\n\n⏱️ ETA: {2}\n\n".format(
+            hbs(current),
+            hbs(total),
+            time_formatter(time_to_completion),
         )
-
-        tmp = (
-            progress_str
-            + "📦 GROSS: {0} of {1}\n\n⏱️ ETA: {2}\n\n".format(
-                hbs(current),
-                hbs(total),
-                time_formatter(time_to_completion),
-            )
-        )
-
+    )
+    # Update the progress bar every 10 seconds to avoid floodwaits on Telegram
+    if (now - start) % 10 < 0.5 or current == total:
         if file:
             await event.edit(
                 "{}\n\n`File Name: {}\n\n{}".format(type_of_ps, file, tmp)
             )
         else:
             await event.edit("{}\n\n{}".format(type_of_ps, tmp))
-
-# Initialize these global variables before starting the upload
-last_update_time = time.time()
-last_update_bytes = 0
-
-# ... [rest of your code] ...
+            
 
 
 async def fast_upload(file, name, time, bot, event, msg):
