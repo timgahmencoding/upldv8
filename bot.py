@@ -8,10 +8,23 @@ import asyncio
 import uvloop
 import time
 from parallel_file_transfer import fast_upload, progress, time_formatter
+import unicodedata
+import re
 
 def sanitize_filename(filename):
+    # Normalize Unicode characters to their closest ASCII representation
+    filename = unicodedata.normalize('NFKD', filename).encode('ascii', 'ignore').decode('ascii')
+    # Remove any characters that are not safe for filenames
+    filename = re.sub(r'[^\w\s-]', '', filename).strip()
+    # Replace spaces or repeated dashes with a single dash
+    filename = re.sub(r'[-\s]+', '-', filename)
+    # Ensure the filename does not start or end with a dash
+    filename = filename.strip('-')
+    return filename
+'''    
+def sanitize_filename(filename):
     return filename.replace('(', '').replace(')', '').replace(' ', '_')
-
+'''
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 load_dotenv()
@@ -59,7 +72,8 @@ async def handle_docs(event):
                     command_to_exec = ["yt-dlp", "--geo-bypass-country", "IN", "-N", "6", "--socket-timeout", "20", "--no-part", "--concurrent-fragments", "10", "--retries", "25", "--fragment-retries", "25", "--force-overwrites", "--no-keep-video", "-i", "--add-metadata", "-o", downloaded_video_path, file_url]
                     subprocess.run(command_to_exec, check=True)
                     thumb_image_path = f"{thumbnail_download_directory}/{file_name}.jpg"
-                    thum_command_to_exec = ['ffmpeg', '-hide_banner', '-loglevel', 'quiet', '-i', downloaded_video_path, '-ss', '00:00:01', '-vframes', '1', '-update', '1', thumb_image_path]
+                   #thum_command_to_exec = ['ffmpeg', '-hide_banner', '-loglevel', 'quiet', '-i', downloaded_video_path, '-ss', '00:00:01', '-vframes', '1', '-update', '1', thumb_image_path]
+                    thum_command_to_exec = ['ffmpeg', '-hide_banner', '-loglevel', 'quiet', '-i', downloaded_video_path, '-vf', 'thumbnail,scale=1280:-1', '-frames:v', '1', thumb_image_path]
                     subprocess.run(thum_command_to_exec, check=True)
                     vid = cv2.VideoCapture(downloaded_video_path)
                     width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
