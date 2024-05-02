@@ -402,6 +402,7 @@ async def upload_file(
     )[0]
 
 
+
 def time_formatter(milliseconds: int) -> str:
     """Inputs time in milliseconds, to get beautified time,
     as string"""
@@ -433,50 +434,58 @@ def hbs(size):
         raised_to_pow += 1
     return str(round(size, 2)) + " " + dict_power_n[raised_to_pow] + "B"
 
-
-
-from telethon.errors import FloodWaitError
-
-
-
-async def progress(current, total, event, start, type_of_ps, file=None, last_update_time=None):
+async def progress(current, total, event, start, type_of_ps, file=None):
     now = time.time()
     diff = now - start
-    # Update every 10 seconds or if it's the last chunk
-    if (now - (last_update_time or 0)) >= 10 or current == total:
-        try:
-            percentage = current * 100 / total
-            speed = current / diff if diff != 0 else 0
-            time_to_completion = round((total - current) / speed) if speed != 0 else 0
-
-            progress_str = "[" + "".join(["▬" for _ in range(math.floor(percentage / 5))]) + "".join(["-" for _ in range(15 - math.floor(percentage / 5))]) + "] | " + str(round(percentage, 2)) + "%"
-
-            tmp = (
-                progress_str
-                + "\n\n📦 GROSS: {0} of {1}\n\n🚀 Speed: {2}/s\n\n⏱️ ETA: {3}\n\n".format(
-                    hbs(current),
-                    hbs(total),
-                    hbs(speed),
-                    time_formatter(time_to_completion),
-                )
+    if round(diff % 10.00) == 0 or current == total:
+        percentage = current * 100 / total
+        speed = current / diff
+        time_to_completion = round((total - current) / speed) * 1000
+        progress_str = "**[{0}{1}]** `| {2}%`\n\n".format(
+            "".join(["▬" for i in range(math.floor(percentage / 10))]),
+            "".join(["-" for i in range(10 - math.floor(percentage / 10))]),
+            round(percentage, 2),
+        )
+        tmp = (
+            progress_str
+            + "📦 GROSS: {0} of {1}\n\n🚀 Speed: {2}/s\n\n⏱️ ETA: {3}\n\n".format(
+                hbs(current),
+                hbs(total),
+                hbs(speed),
+                time_formatter(time_to_completion),
             )
-            
-            if file:
-                await event.edit(
-                    "{}\n\n`File Name: {}\n\n{}".format(type_of_ps, file, tmp)
-                )
-            else:
-                await event.edit("{}\n\n{}".format(type_of_ps, tmp))
-            last_update_time = now  # Update the last update time
-        except FloodWaitError as e:
-            print(f"Got a flood wait error. Waiting for {e.seconds} seconds.")
-            await asyncio.sleep(e.seconds)  # Wait for the required time
+        )
+        if file:
+            await event.edit(
+                "{}\n\n`File Name: {}\n\n{}".format(type_of_ps, file, tmp)
+            )
+        else:
+            await event.edit("{}\n\n{}".format(type_of_ps, tmp))
 
-# Initialize the last update time before starting the upload
-last_update_time = time.time()
 
-# ... [rest of your code] ...
-'''
+#Why these methods? : Using progress of telethon makes upload/download slow due to callbacks
+#these method allows to upload/download in fastest way with progress bars.
+
+
+async def fast_download(filename, file, bot, event, time, msg):
+    with open(filename, "wb") as fk:
+        result = await download_file(
+            client=bot,
+            location=file,
+            out=fk,
+            progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
+                progress(
+                    d,
+                    t,
+                    event,
+                    time,
+                    msg,
+                ),
+            ),
+        )
+    return result
+
+
 async def fast_upload(file, name, time, bot, event, msg):
     with open(file, "rb") as f:
         result = await upload_file(
@@ -494,31 +503,4 @@ async def fast_upload(file, name, time, bot, event, msg):
             ),
         )
     return result
-'''
-from telethon.errors import FloodWaitError
 
-# ... [other functions] ...
-
-async def fast_upload(file, name, time, bot, event, msg):
-    try:
-        with open(file, "rb") as f:
-            result = await upload_file(
-                client=bot,
-                file=f,
-                filename=name,
-                progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
-                    progress(
-                        d,
-                        t,
-                        event,
-                        time,
-                        msg,
-                    ),
-                ),
-            )
-        return result
-    except FloodWaitError as e:
-        print(f"Got a flood wait error. Waiting for {e.seconds} seconds.")
-        await asyncio.sleep(e.seconds)  # Wait for the required time
-        return await fast_upload(file, name, time, bot, event, msg)  # Retry upload
-                
