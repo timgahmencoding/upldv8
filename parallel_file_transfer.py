@@ -424,7 +424,7 @@ async def fast_upload(file, name, time, bot, event, msg):
 
 
 
-def hrb(value, digits= 2, delim= "", postfix=""):
+def hbs(value, digits= 2, delim= "", postfix=""):
     """Return a human-readable file size.
     """
     if value is None:
@@ -468,6 +468,26 @@ def hrt(seconds, precision = 0):
 
     return "".join(pieces[:precision])
 
+def time_formatter(milliseconds: int) -> str:
+    """Inputs time in milliseconds, to get beautified time,
+    as string"""
+    seconds, milliseconds = divmod(int(milliseconds), 1000)
+    minutes, seconds = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    days, hours = divmod(hours, 24)
+    weeks, days = divmod(days, 7)
+    tmp = (
+        ((str(weeks) + "w:") if weeks else "")
+        + ((str(days) + "d:") if days else "")
+        + ((str(hours) + "h:") if hours else "")
+        + ((str(minutes) + "m:") if minutes else "")
+        + ((str(seconds) + "s:") if seconds else "")
+    )
+    if tmp.endswith(":"):
+        return tmp[:-1]
+    else:
+        return tmp
+
 
 
 class Timer:
@@ -492,9 +512,9 @@ async def progress(current,total,reply,start):
             perc = f"{current * 100 / total:.1f}%"
             elapsed_time = round(diff)
             speed = current / elapsed_time
-            sp=str(hrb(speed))+"ps"
-            tot=hrb(total)
-            cur=hrb(current)
+            sp=str(hbs(speed))+"ps"
+            tot=hbs(total)
+            cur=hbs(current)
             try:
                 await reply.edit(f'`┌ 𝙋𝙧𝙤𝙜𝙧𝙚𝙨𝙨 📈 -【 {perc} 】\n├ 𝙎𝙥𝙚𝙚𝙙 🧲 -【 {sp} 】\n└ 𝙎𝙞𝙯𝙚 📂 -【 {cur} / {tot} 】`')
                
