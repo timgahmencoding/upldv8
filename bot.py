@@ -55,9 +55,10 @@ async def handle_docs(event):
         with open(file_path, 'r') as file:
             lines = file.readlines()
         start_index_message = await event.respond("Enter the index from where to start downloading:")
-    response = await event.wait(events.NewMessage(incoming=True, from_users=event.sender_id))
-    start_index_text = response.text
-    start_index = int(start_index_text) if start_index_text.isdigit() else 0
+        response = await event.wait(events.NewMessage(incoming=True, from_users=event.sender_id))
+        start_index_text = response.text
+        start_index = int(start_index_text) if start_index_text.isdigit() else 0
+
         for index, line in enumerate(lines[start_index:], start=start_index):
             if cancel_event.is_set():
                 cancel_event.clear()
