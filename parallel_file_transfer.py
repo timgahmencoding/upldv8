@@ -424,7 +424,7 @@ async def fast_upload(file, name, time, bot, event, msg):
 
 
 
-def hbs(value, digits= 2, delim= "", postfix=""):
+def hrb(value, digits= 2, delim= "", postfix=""):
     """Return a human-readable file size.
     """
     if value is None:
@@ -512,9 +512,9 @@ async def progress(current,total,reply,start):
             perc = f"{current * 100 / total:.1f}%"
             elapsed_time = round(diff)
             speed = current / elapsed_time
-            sp=str(hbs(speed))+"ps"
-            tot=hbs(total)
-            cur=hbs(current)
+            sp=str(hrb(speed))+"ps"
+            tot=hrb(total)
+            cur=hrb(current)
             try:
                 await reply.edit(f'`┌ 𝙋𝙧𝙤𝙜𝙧𝙚𝙨𝙨 📈 -【 {perc} 】\n├ 𝙎𝙥𝙚𝙚𝙙 🧲 -【 {sp} 】\n└ 𝙎𝙞𝙯𝙚 📂 -【 {cur} / {tot} 】`')
                
